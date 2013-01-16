@@ -22,7 +22,7 @@ Please pull request your changes, bug fixes. Thanks!
 
 ### HOW TO BUILD
 Download and install Lua Compiler http://www.lua.org/download.html
-We suggest to use Lua 5.1.4 for 32-bit architectures <a href="#get-a-32bit-luac">(to get lua compiler for 32-bit architectures)</a>
+We suggest to use Lua 5.1.4 for 32-bit architectures <a href="#get-a-32-bit-version-of-lua">(to get lua compiler for 32-bit architectures)</a>
 (Files compiled with 32bit compiler will perfectly work on 32bit and 64bit, while files compiled with 64bit compiler will only work on 64bit computers and not on 32bit arcitecture)
 
 
