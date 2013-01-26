@@ -459,6 +459,7 @@ function getPhotoInfo( exportContext )
 			photoInfo.previous_tags = photo:getPropertyForPlugin( _PLUGIN, "previous_tags" )
 			photoInfo.nsfw = numberToBoolean( photo:getPropertyForPlugin( _PLUGIN, "nsfw" ) )
 			photoInfo.license_type = photo:getPropertyForPlugin( _PLUGIN, "license_type" )
+			photoInfo.lens = photo:getFormattedMetadata( "lens" )
 			photo:getRawMetadata( "keywords" )
 		end )
 		photoInfo.success, photoInfo.path = rendition:waitForRender()
@@ -862,7 +863,8 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 						category = photoInfo.category,
 						privacy = photoInfo.privacy,
 						nsfw = booleanToNumber( photoInfo.nsfw ),
-						license_type = photoInfo.license_type
+						license_type = photoInfo.license_type,
+						lens = photoInfo.lens
 					}
 
 					if photoInfo.privacy == 1 and publishedCollectionInfo.toCommunity then
