@@ -8,7 +8,7 @@ To try 500px Publisher for, checkout http://500px.com/lightroom
 
 ### QUICK START
 1. Clone the repo: git clone git://github.com/500px/500pxPublisher.lrplugin
-2. Edit **CONSUMER_KEY**, **CONSUMER_SECRET** and **SALT** variables in **500pxAPI.lua**
+2. [Register Your Application](http://500px.com/settings/applications) and Edit variables **CONSUMER\_KEY**, **CONSUMER\_SECRET** with your app's keys and **SALT** variable with some random data in **500pxAPI.lua**
 3. Copy **500pxPublisher.lrplugin** directory into Lightroom plugins 
 or Add the plugin thought *Lightroom Plug-in Maganger*
 
