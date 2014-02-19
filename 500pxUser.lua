@@ -80,7 +80,7 @@ local function getCollectionsAndPhotos( publishService )
 end
 
 function PxUser.sync( propertyTable )
-	
+
 	local publishService = propertyTable.LR_publishService
 	local e = false
 	local function doSync( context, progressScope )
@@ -88,11 +88,11 @@ function PxUser.sync( propertyTable )
 		logger:trace( "sync all" )
 
 		local LrPathUtils = import "LrPathUtils"
-		local LrFileUtils = import "LrFileUtils" 
+		local LrFileUtils = import "LrFileUtils"
 		local collectionsById, collectionsByName, publishedPhotos = getCollectionsAndPhotos( publishService )
 
 		local profileCollection = collectionsByName[ "Profile" ]
-		if profileCollection then 
+		if profileCollection then
 			if profileCollection.collection:getCollectionInfoSummary().isDefaultCollection then
 				profileCollection.collection:setName( "Library" )
 				collectionsByName[ "Library" ] = collectionsByName[ "Profile" ]
@@ -111,7 +111,7 @@ function PxUser.sync( propertyTable )
 		for _, collectionObj in ipairs( obj.collections ) do
 			collections[ tostring( collectionObj.id ) ] = collectionObj
 			for _, __ in ipairs( collectionObj.photos ) do
-				nInCollections = nInCollections + 1 
+				nInCollections = nInCollections + 1
 			end
 			nInCollections = nInCollections + 1
 		end
@@ -136,8 +136,9 @@ function PxUser.sync( propertyTable )
 		local nPhotos
 		local i = 0
 
+		args.user_id = propertyTable.userId
 		args.page = 1
-		local success, obj = PxAPI.getPhotos( propertyTable.credentials, args)
+		local success, obj = PxAPI.getPhotos( propertyTable, args)
 		if not success then
 			e = true
 			obj = { total_items = 0 }
@@ -151,7 +152,7 @@ function PxUser.sync( propertyTable )
 			end
 			args.page = nPhotos - page
 			if args.page == 0 then args.page = 1 end
-			local success, obj = PxAPI.getPhotos( propertyTable.credentials, args )
+			local success, obj = PxAPI.getPhotos( propertyTable, args )
 			if not success then
 				e = true
 				break
@@ -194,12 +195,12 @@ function PxUser.sync( propertyTable )
 							photo:setRawMetadata( "caption", photoObj.description or "" )
 
 							if photoObj.category and photoObj.category > 0 then
-								photo:setPropertyForPlugin( _PLUGIN, "category", photoObj.category )		
+								photo:setPropertyForPlugin( _PLUGIN, "category", photoObj.category )
 							end
 
 							photo:setPropertyForPlugin( _PLUGIN, "nsfw", booleanToNumber(photoObj.nsfw) )
 						end
-						
+
 						photo:setPropertyForPlugin( _PLUGIN, "publishedUUID", photo:getRawMetadata( "uuid" ) )
 						photo:setPropertyForPlugin( _PLUGIN, "views", tostring( photoObj.times_viewed ) or "0" )
 						photo:setPropertyForPlugin( _PLUGIN, "favorites", tostring( photoObj.favorites_count ) or "0" )
@@ -216,7 +217,7 @@ function PxUser.sync( propertyTable )
 				end)
 
 				if PluginInit then PluginInit.unlock() end
-				
+
 				LrTasks.yield()
 			end
 
@@ -226,7 +227,7 @@ function PxUser.sync( propertyTable )
 			page = page + 1
 			if obj.total_pages <= page or obj.total_pages == 0 then break end
 		end
-		
+
 		-- ...add in the "Profile" and "Library"  collection
 		collections[ "profile" ] = { title = "Public Profile", id = nil, photos = profilePhotos }
 		collections[ "nil" ] = { title = "Library", id = nil, photos = allPhotos }
@@ -237,7 +238,7 @@ function PxUser.sync( propertyTable )
 			publishService.catalog:withWriteAccessDo( "sync.sync", function()
 				if not collections[ id ] then
 					collectionInfo.collection:delete()
-				end 
+				end
 			end )
 			if PluginInit then PluginInit.unlock() end
 		end
@@ -275,7 +276,7 @@ function PxUser.sync( propertyTable )
 				-- always update remote url and collection settings
 				local collectionUrl
 				if collectionObj.title == "Public Profile" then
-					collectionUrl = "http://500px.com/" .. propertyTable.username 
+					collectionUrl = "http://500px.com/" .. propertyTable.username
 				elseif collectionObj.title == "Library" or collectionObj.title == "Organizer" then
 					collectionUrl = "http://500px.com/organizer"
 					collectionSettings.toCommunity = false
@@ -323,7 +324,7 @@ function PxUser.sync( propertyTable )
 							table.insert( photosToRemove, publishedPhoto:getPhoto() )
 						end
 					end
-					
+
 					if PluginInit then PluginInit.lock() end
 					publishService.catalog:withWriteAccessDo( "sync.sync", function()
 						collection:removePhotos( photosToRemove )
@@ -335,12 +336,12 @@ function PxUser.sync( propertyTable )
 			i = i + 1
 			LrTasks.yield()
 		end
-		
+
 	end
 
 	LrFunctionContext.postAsyncTaskWithContext( "sync", function( context )
 		if PluginInit then PluginInit.lock() end
-		publishService.catalog:withWriteAccessDo( "sync.defaults", function() 
+		publishService.catalog:withWriteAccessDo( "sync.defaults", function()
 			local profileCollection = publishService:createPublishedCollection( "Public Profile", nil, true )
 			profileCollection:setCollectionSettings( { toCommunity = true } )
 			profileCollection:setRemoteUrl( "http://500px.com/" .. propertyTable.username )
@@ -374,10 +375,10 @@ function PxUser.syncCollections( propertyTable )
 		LrDialogs.attachErrorDialogToFunctionContext( context )
 		logger:trace( "sync collections" )
 		local collectionsById, collectionsByName, publishedPhotos = getCollectionsAndPhotos( publishService )
-		
+
 		-- rename the profile collection...
 		local profileCollection = collectionsByName[ "Profile" ]
-		if profileCollection then 
+		if profileCollection then
 			if profileCollection.collection:getCollectionInfoSummary().isDefaultCollection then
 				profileCollection.collection:setName( "Library" )
 				collectionsByName[ "Library" ] = collectionsByName[ "Profile" ]
@@ -403,14 +404,14 @@ function PxUser.syncCollections( propertyTable )
 			publishService.catalog:withWriteAccessDo( "sync.sync", function()
 				if not collections[ id ] then
 					collectionInfo.collection:delete()
-				end 
+				end
 			end )
 			if PluginInit then PluginInit.unlock() end
 		end
 
 		local i = 0
 		for id, collectionObj in pairs( collections ) do
-			
+
 			if PluginInit then PluginInit.lock() end
 			publishService.catalog:withWriteAccessDo( "sync.sync", function()
 				local collection
@@ -441,7 +442,7 @@ function PxUser.syncCollections( propertyTable )
 				-- always update remote url and collection settings
 				local collectionUrl
 				if collectionObj.title == "Public Profile" then
-					collectionUrl = "http://500px.com/" .. propertyTable.username 
+					collectionUrl = "http://500px.com/" .. propertyTable.username
 				elseif collectionObj.title == "Library" then
 					collectionUrl = "http://500px.com/organizer"
 				else
@@ -461,7 +462,7 @@ function PxUser.syncCollections( propertyTable )
 
 	LrFunctionContext.postAsyncTaskWithContext( "sync", function( context )
 		if PluginInit then PluginInit.lock() end
-		publishService.catalog:withWriteAccessDo( "sync.defaults", function() 
+		publishService.catalog:withWriteAccessDo( "sync.defaults", function()
 			local profileCollection = publishService:createPublishedCollection( "Public Profile", nil, true )
 			profileCollection:setCollectionSettings( { toCommunity = true } )
 			profileCollection:setRemoteUrl( "http://500px.com/" .. propertyTable.username )
@@ -709,7 +710,7 @@ function PxUser.register( propertyTable )
 		propertyTable.username = userinfo.username
 		local success, obj = PxAPI.register( userinfo )
 
-		if success then 
+		if success then
 			propertyTable.credentials = obj
 
 			PxUser.updateUserStatusTextBindings( propertyTable )
