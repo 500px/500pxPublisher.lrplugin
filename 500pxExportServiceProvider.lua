@@ -50,11 +50,11 @@ end
 
 local function numberToBoolean( n )
 	if not n then return false end
-	return n ~= 0 
+	return n ~= 0
 end
 
 local function stripAllTags( text )
-	return string.gsub( text, "(<[^>]->)", function( match )  
+	return string.gsub( text, "(<[^>]->)", function( match )
 		return ""
 	end )
 end
@@ -140,7 +140,7 @@ function exportServiceProvider.startDialog( propertyTable )
 	updateCantExportBecause( propertyTable )
 
 	propertyTable:addObserver( "validAccount", function() setPresets( propertyTable ) end )
-		
+
 	-- clear login if it's a new connection
 	if not propertyTable.LR_editingExistingPublishConnection and propertyTable.LR_isExportForPublish then
 		propertyTable.credentials = nil
@@ -150,7 +150,7 @@ function exportServiceProvider.startDialog( propertyTable )
 	else
 		propertyTable.collectionId = nil
 	end
-	
+
 	setPresets( propertyTable )
 
 	PxUser.verifyLogin( propertyTable )
@@ -463,7 +463,7 @@ function getPhotoInfo( exportContext )
 			photo:getRawMetadata( "keywords" )
 		end )
 		photoInfo.success, photoInfo.path = rendition:waitForRender()
-	
+
 		-- check uuid to see if it's a virtual copy that hasn't been published
 		if not propertyTable.LR_isExportForPublish or photoInfo.publishedUUID ~= photo:getRawMetadata( "uuid" ) then
 			photoInfo.id = nil
@@ -493,7 +493,7 @@ function getPhotoInfo( exportContext )
 			else
 				photoInfo.privacy = booleanToNumber( obj.photo.privacy )
 			end
-		end 
+		end
 
 		-- allow user to change metadata
 		if not propertyTable.doNotShowInfoScreen and not photoInfo.failed then
@@ -639,19 +639,19 @@ function getPhotoInfo( exportContext )
 				f:checkbox {
 					bind_to_object = propertyTable,
 					value = bind "doNotShowInfoScreen",
-					title = "Do not show this window until the next time I publish.", 
+					title = "Do not show this window until the next time I publish.",
 				}
 			}
-			
+
 			local action = LrDialogs.presentModalDialog {
 				title = "Photo Details",
 				contents = contents,
 				cancelVerb = "Skip",
 			}
-			
+
 			if action == "cancel" then
 				photoInfo.skipped = true
-			end	
+			end
 		end
 
 		-- update photo's metadata
@@ -686,7 +686,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 
 	local nPhotos = exportSession:countRenditions()
 	local progressScope = exportContext:configureProgress( {
-		title = nPhotos > 1 and string.format( "Publishing %i photos to 500px.", nPhotos) or "Publishing one photo to 500px." 
+		title = nPhotos > 1 and string.format( "Publishing %i photos to 500px.", nPhotos) or "Publishing one photo to 500px."
 	} )
 
 	local publishedCollection
@@ -701,7 +701,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 		publishedCollectionInfo.isProfileCollection = publishedCollectionInfo.name == "Profile" or publishedCollectionInfo.name == "Public Profile"
 		publishedCollectionInfo.isAllPhotosCollection = publishedCollectionInfo.name == "Library" or publishedCollectionInfo.name == "Organizer"
 		publishedCollectionInfo.isDefaultCollection = publishedCollectionInfo.isProfileCollection or publishedCollectionInfo.isAllPhotosCollection
-		publishedCollectionInfo.remoteUrl = ( publishedCollectionInfo.isProfileCollection and string.format( "http://500px.com/%s", propertyTable.username ) ) or 
+		publishedCollectionInfo.remoteUrl = ( publishedCollectionInfo.isProfileCollection and string.format( "http://500px.com/%s", propertyTable.username ) ) or
 						    ( publishedCollectionInfo.isAllPhotosCollection and "http://500px.com/organizer" ) or
 						    PxAPI.makeCollectionUrl( propertyTable.username, collectionInfoSummary.collectionSettings.path )
 		publishedCollectionInfo.path = collectionInfoSummary.collectionSettings.path
@@ -755,7 +755,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 	-- check if user made this collection online already...
 	local remoteCollection
 	for _, collection in ipairs( collections ) do
-		if collection.id == publishedCollectionInfo.remoteId then 
+		if collection.id == publishedCollectionInfo.remoteId then
 			remoteCollection = collection
 			break
 		elseif collection.title == publishedCollectionInfo.name then
@@ -828,9 +828,10 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 
 		local photos = getPhotoInfo( exportContext )
 		local uploadLimit = propertyTable.uploadLimit or 0
+
 		logger:trace( "Upload limit: " .. tostring(uploadLimit) )
 		local uploadCount = 0
-	
+
 		local i = 1
 		for rendition, photoInfo in pairs( photos ) do
 			progressScope:setPortionComplete( ( i - 1 ) / nPhotos )
@@ -840,14 +841,14 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 				logger:trace(" -- LR Photo status: " .. tostring(photoInfo.status))
 
 				local success = true, obj
-				
+
 				if progressScope.isCancelled then break end
-	
+
 				if not photoInfo.id and not (propertyTable.isUserAwesome or propertyTable.isUserPlus) and uploadLimit <= 0 then
 					logger:trace( "Upload limit reached." .. tostring(uploadLimit) )
 					rendition:uploadFailed( "You have reached your weekly upload limit after 10 uploads on a basic account."  .. uploadLimit)
 					photoInfo.failed = true
-				else	
+				else
 					photoid = photoInfo.id
 					photostatus = photoInfo.status
 
@@ -875,7 +876,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 					photoInfo.uploadKey = obj.upload_key
 					if obj.photo then photoInfo.id = tostring( obj.photo.id ) end
 				end
-	
+
 				-- update the collection
 				if not success then
 					logger:trace( "photo upload failed" )
@@ -889,12 +890,12 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 					}
 					success, _ = PxAPI.setPhotoTags( propertyTable, args )
 				end
-				
-				if not success and not photoInfo.failed then 
+
+				if not success and not photoInfo.failed then
 					logger:trace( "updating tags failed" )
 					rendition:uploadFailed( "Could not connect to 500px." )
 					photoInfo.failed = true
-				elseif not publishedCollectionInfo.isDefaultCollection and not string.match( photoList, string.format( ",%s,", photoInfo.id ) ) and not photoInfo.failed then 
+				elseif not publishedCollectionInfo.isDefaultCollection and not string.match( photoList, string.format( ",%s,", photoInfo.id ) ) and not photoInfo.failed then
 					logger:trace( "updating collection..." )
 
 					photoList = string.format( "%s%s,", photoList, photoInfo.id )
@@ -909,7 +910,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 						LrErrors.throwUserError( "Sorry, you have to upgrade to work with Sets." )
 					end
 				end
-	
+
 				-- upload the photo
 				if not success and not photoInfo.failed then
 					logger:trace( "unabled to update collection" )
@@ -926,9 +927,9 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 					success, obj = PxAPI.upload( args )
 					uploadLimit = uploadLimit - 1
 				end
-	
+
 				-- record remote id and url
-				if not success and not photoInfo.failed then 
+				if not success and not photoInfo.failed then
 					logger:trace( "upload failed." )
 					rendition:uploadFailed( "Could not connect to 500px." )
 					photoInfo.failed = true
@@ -940,27 +941,27 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 						if PluginInit then PluginInit.lock() end
 						LrApplication:activeCatalog():withWriteAccessDo( "publish", function( context )
 							photo:setPropertyForPlugin( _PLUGIN, "photoId", tostring( photoInfo.id ) )
-		
+
 							rendition:recordPublishedPhotoId( string.format( "%s-%s", photoInfo.id, publishedCollectionInfo.remoteId ) )
 							rendition:recordPublishedPhotoUrl( string.format( "http://500px.com/photo/%s", photoInfo.id ) )
-		
+
 							photo:setPropertyForPlugin( _PLUGIN, "publishedUUID", photo:getRawMetadata( "uuid" ) )
 
 							-- this is stupid, but has to be here for LR4 and keywords. Photos all be marked as modified when you change you metadata in the upload dialog
 							exportContext.publishedCollection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, publishedCollectionInfo.remoteId ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
-							
+
 							-- mark all photo is published in all collections it belongs to
 							if photoInfo.collections then
 								for _, collection in ipairs( photoInfo.collections ) do
 									collection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, collection:getRemoteId() ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
 								end
 							end
-		
+
 							-- add photo to "Library"
 							if not publishedCollectionInfo.isAllPhotosCollection and allPhotosCollection then
 								allPhotosCollection:addPhotoByRemoteId( photo, string.format( "%s-nil", photoInfo.id ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
 							end
-		
+
 							-- add photo to "Profile"
 							if photoInfo.privacy == 0 and not publishedCollectionInfo.isProfileCollection then
 								profileCollection:addPhotoByRemoteId( photo, string.format( "%s-profile", photoInfo.id ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
@@ -969,7 +970,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 						if PluginInit then PluginInit.unlock() end
 					end
 				end
-				
+
 				LrFileUtils.delete( photoInfo.path )
 				progressScope:setPortionComplete( ( i - 0.5 ) / nPhotos )
 				i = i + 1

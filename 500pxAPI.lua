@@ -147,7 +147,7 @@ local function call_rest_method( propertyTable, method, path, args )
 	local response, headers = call_it( method, url, args, rid )
 
 	-- logger:trace( "Query " .. rid .. ": " .. (headers.status or -1) )
-	
+
 	if not headers.status then
 		LrErrors.throwUserError( "Could not connect to 500px. Make sure you are connected to the internet and try again." )
 	end
@@ -159,8 +159,8 @@ local function call_rest_method( propertyTable, method, path, args )
 		if response:match("Deactivated user") or response:match("This account is banned or deactivated") then
 --			logger:trace("User is banned or deactivated. Response: " .. response)
 			return headers.status == 403, "banned"
-		else 
---			logger:trace("Request: " .. path .. "  Response: " .. response)  
+		else
+--			logger:trace("Request: " .. path .. "  Response: " .. response)
 			return headers.status == 403, "other"
 		end
 	end
@@ -314,7 +314,7 @@ function PxAPI.processTags( new_tags, previous_tags, web_tags )
 			end
 		end
 	end
-	
+
 	for t in string.gfind( new_tags, "[^,]+" ) do
 		t = t:match( "^%s*(.-)%s*$" )
 		if not existing[ t ] then
@@ -374,7 +374,7 @@ function PxAPI.login( credentials )
 	if not response or not headers.status then
 		LrErrors.throwUserError( "Could not connect to 500px.com. Please make sure you are connected to the internet and try again." )
 	end
-	
+
 	local access_token = response:match( "oauth_token=([^&]+)" )
 	local access_token_secret = response:match( "oauth_token_secret=([^&]+)" )
 
