@@ -9,6 +9,13 @@ local LrHttp = import "LrHttp"
 local LrMD5 = import "LrMD5"
 local LrPathUtils = import "LrPathUtils"
 local LrStringUtils = import "LrStringUtils"
+local LrTasks = import "LrTasks"
+local LrBinding = import "LrBinding"
+local LrDialogs = import "LrDialogs"
+local LrView = import "LrView"
+
+-- Common shortcuts
+local bind = LrView.bind
 
 require "sha1"
 
@@ -28,7 +35,9 @@ logger:enable("logfile")
 local COCOA_TIMESHIFT = 978307200
 
 local REQUEST_TOKEN_URL = "https://api.500px.com/v1/oauth/request_token" -- https://
+local AUTHORIZE_TOKEN_URL = "https://api.500px.com/v1/oauth/authorize" -- https://
 local ACCESS_TOKEN_URL = "https://api.500px.com/v1/oauth/access_token" -- https://
+local CALLBACK_URL = "http://500px.com/apps/lightroom"
 local BASE_URL = "https://api.500px.com/v1/" -- https://
 
 --[[ Some Handy Helper Functions ]]--
@@ -82,7 +91,7 @@ local function oauth_sign( method, url, args )
 		local value = args[key]
 
 		-- url encode the value if it's not an oauth parameter
-		if string.find( key, "oauth" ) == 1 then
+		if string.find( key, "oauth" ) == 1 and key ~= "oauth_callback" then
 			value = string.gsub( value, " ", "+" )
 			value = oauth_encode( value )
 		end
@@ -341,11 +350,11 @@ function PxAPI.setPhotoTags( propertyTable, args )
 	return true, nil
 end
 
-function PxAPI.login( credentials )
+function PxAPI.login( context )
 	LrHttp.get( "http://500px.com/logout" )
 
 	-- get a request token
-	local response, headers = call_it( "POST", REQUEST_TOKEN_URL, { oauth_callback = "oob" }, math.random(99999) )
+	local response, headers = call_it( "POST", REQUEST_TOKEN_URL, { oauth_callback = CALLBACK_URL }, math.random(99999) )
 	if not response or not headers.status then
 		LrErrors.throwUserError( "Could not connect to 500px.com. Please make sure you are connected to the internet and try again." )
 	end
@@ -360,13 +369,50 @@ function PxAPI.login( credentials )
 		LrErrors.throwUserError( "Oops, something went wrong. Try again later.")
 	end
 
+	local url = AUTHORIZE_TOKEN_URL .. string.format( "?oauth_token=%s", token )
+	LrHttp.openUrlInBrowser(url)
+
+	local properties = LrBinding.makePropertyTable( context )
+	local f = LrView.osFactory()
+	local contents = f:column {
+		bind_to_object = properties,
+		spacing = f:control_spacing(),
+		f:picture {
+			value = _PLUGIN:resourceId( "login.png" )
+		},
+		f:static_text {
+			title = "Enter the verification token provided by the website",
+			place_horizontal = 0.5,
+		},
+		f:edit_field {
+			width = 300,
+			value = bind "verifier",
+			place_horizontal = 0.5,
+		},
+	}
+
+	PxAPI.URLCallback = function( oauth_token, oauth_verifier )
+		if oauth_token == token then
+			properties.verifier = oauth_verifier
+			LrDialogs.stopModalWithResult(contents, "ok")
+		end
+	end
+
+	local action = LrDialogs.presentModalDialog( {
+		title = "Enter verification token",
+		contents = contents,
+		actionVerb = "Authorize"
+	} )
+
+	PxAPI.URLCallback = nil
+
+	if action == "cancel" then return nil end
+
 	-- get an access token_secret
 	local args = {
-		x_auth_mode = "client_auth",
-		x_auth_username = credentials.username,
-		x_auth_password = credentials.password,
 		oauth_token = token,
 		oauth_token_secret = token_secret,
+		oauth_verifier = LrStringUtils.trimWhitespace(properties.verifier),
 	}
 
 	local response, headers = call_it( "POST", ACCESS_TOKEN_URL, args, math.random(99999) )
@@ -379,7 +425,12 @@ function PxAPI.login( credentials )
 	local access_token_secret = response:match( "oauth_token_secret=([^&]+)" )
 
 	if not access_token or not access_token_secret then
-		LrErrors.throwUserError( "Login failed. Username and password do not match or user is banned/deactivated.")
+		if response:match("Deactivated user") then
+			logger:trace( "User is banned or deactivated.")
+			LrErrors.throwUserError( "Sorry, this user is inactive or banned. If you think this is a mistake — please contact us by email: help@500px.com." )
+		else
+			LrErrors.throwUserError( "Login failed." )
+		end
 	end
 
 	return {
