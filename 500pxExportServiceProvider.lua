@@ -673,7 +673,7 @@ function getPhotoInfo( exportContext )
 		if PluginInit then PluginInit.unlock() end
 
 		end
-		photos[ rendition ] = photoInfo
+		table.insert( photos, { ["rendition"] = rendition, ["photoInfo"] = photoInfo } )
 	end
 
 	return photos
@@ -832,8 +832,9 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 		logger:trace( "Upload limit: " .. tostring(uploadLimit) )
 		local uploadCount = 0
 
-		local i = 1
-		for rendition, photoInfo in pairs( photos ) do
+		for i, data in pairs( photos ) do
+			local rendition = data.rendition
+			local photoInfo = data.photoInfo
 			progressScope:setPortionComplete( ( i - 1 ) / nPhotos )
 			local photo = rendition.photo
 			if not photoInfo.skipped and not photoInfo.failed then
@@ -973,7 +974,6 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 
 				LrFileUtils.delete( photoInfo.path )
 				progressScope:setPortionComplete( ( i - 0.5 ) / nPhotos )
-				i = i + 1
 			end
 		end
 
