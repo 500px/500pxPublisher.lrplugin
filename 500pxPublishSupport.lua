@@ -123,12 +123,9 @@ function publishServiceProvider.deletePhotosFromPublishedCollection( publishSett
 							photo:setPropertyForPlugin( _PLUGIN, "views", nil )
 							photo:setPropertyForPlugin( _PLUGIN, "favorites", nil )
 							photo:setPropertyForPlugin( _PLUGIN, "votes", nil )
-							photo:setPropertyForPlugin( _PLUGIN, "category", nil )
 							photo:setPropertyForPlugin( _PLUGIN, "publishedUUID", nil )
 							photo:setPropertyForPlugin( _PLUGIN, "previous_tags", nil )
 							photo:setPropertyForPlugin( _PLUGIN, "privacy", nil )
-							photo:setPropertyForPlugin( _PLUGIN, "nsfw", nil )
-							photo:setPropertyForPlugin( _PLUGIN, "license_type", nil )
 						end
 					end
 				end
@@ -269,12 +266,9 @@ function publishServiceProvider.willDeletePublishService( publishSettings, info 
 		photo:setPropertyForPlugin( _PLUGIN, "favorites", nil )
 		photo:setPropertyForPlugin( _PLUGIN, "votes", nil )
 		photo:setPropertyForPlugin( _PLUGIN, "previous_tags", nil )
-		photo:setPropertyForPlugin( _PLUGIN, "category", nil )
-		photo:setPropertyForPlugin( _PLUGIN, "nsfw", nil )
 		photo:setPropertyForPlugin( _PLUGIN, "publishedUUID", nil )
 		photo:setPropertyForPlugin( _PLUGIN, "photoId", nil )
 		photo:setPropertyForPlugin( _PLUGIN, "privacy", nil )
-		photo:setPropertyForPlugin( _PLUGIN, "license_type", nil )
 	end
 end
 
