@@ -85,7 +85,38 @@ function publishServiceProvider.deletePhotosFromPublishedCollection( publishSett
 		end
 		collections[ tostring( collection.id ) ] = photos
 	end
-	
+
+	local LrApplication = import "LrApplication"
+	local catalog = LrApplication:activeCatalog()
+	local publishServices = catalog:getPublishServices( "com.500px.publisher" )
+	local publishService
+	for _, ps in ipairs( publishServices ) do
+		if ps:getPublishSettings().username == publishSettings.username then
+			publishService = ps
+			break
+		end
+	end
+
+	LrApplication:activeCatalog():withReadAccessDo( function()
+		for _, publishedCollection in ipairs( publishService:getChildCollections() ) do
+			local name = publishedCollection:getName()
+			if name ~= "Profile" and name ~= "Public Profile" and name ~= "Library" and name ~= "Organizer" then
+				local cid = tostring( publishedCollection:getRemoteId() )
+				local photos = collections[ cid ]
+
+				for _, photo in ipairs( publishedCollection:getPublishedPhotos() ) do
+					local pid = photo:getPhoto():getPropertyForPlugin( _PLUGIN, "photoId" )
+					if pid and not string.match( photos, string.format( ",%s,", pid ) ) then
+						logger:trace( "Added missing photo to list: " .. pid )
+						photos = string.format( "%s%i,", photos, pid )
+					end
+				end
+
+				collections[ cid ] = photos
+			end
+		end
+	end )
+
 	for i, remoteId in ipairs( arrayOfPhotoIds ) do
 		
 		local photo_id, collection_id = string.match( arrayOfPhotoIds[i], "([^-]+)-([^-]+)" )
@@ -100,17 +131,6 @@ function publishServiceProvider.deletePhotosFromPublishedCollection( publishSett
 			success, obj = PxAPI.postCollection( publishSettings, { collection_id = collection_id, photo_ids = string.sub( photos, 2, string.len( photos ) ) } )
 		else
 			success, obj = PxAPI.deletePhoto( publishSettings, { photo_id = tonumber( photo_id ) } )
-
-			local LrApplication = import "LrApplication"
-			local catalog = LrApplication:activeCatalog()
-			local publishServices = catalog:getPublishServices( "com.500px.publisher" )
-			local publishService
-			for _, ps in ipairs( publishServices ) do
-				if ps:getPublishSettings().username == publishSettings.username then
-					publishService = ps
-					break
-				end
-			end
 
 			if PluginInit then PluginInit.lock() end
 			LrApplication:activeCatalog():withWriteAccessDo( "delete", function()	

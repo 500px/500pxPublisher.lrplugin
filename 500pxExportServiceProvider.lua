@@ -772,6 +772,18 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 		end
 	end
 
+	if publishedCollection then
+		LrApplication:activeCatalog():withReadAccessDo( function()
+			for _, photo in ipairs( publishedCollection:getPublishedPhotos() ) do
+				local pid = photo:getPhoto():getPropertyForPlugin( _PLUGIN, "photoId" )
+				if pid and not string.match( photoList, string.format( ",%s,", pid ) ) then
+					logger:trace( "Added missing photo to list: " .. pid )
+					photoList = string.format( "%s%i,", photoList, pid )
+				end
+			end
+		end )
+	end
+
 	-- create the collection if it doesn't already exist
 	if not remoteCollection and not publishedCollectionInfo.isDefaultCollection then
 		if not propertyTable.isUserAwesome and not propertyTable.isUserPlus then
@@ -801,8 +813,8 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 				if publishedCollection then
 					for _, photo in ipairs( publishedCollection:getPublishedPhotos() ) do
 						local pid
-						LrApplication:activeCatalog():withReadAccessDo( "", function()
-							pid = photo.photo:getPropertyForPlugin( _PLUGIN, "photoId" )
+						LrApplication:activeCatalog():withReadAccessDo( function()
+							pid = photo:getPhoto():getPropertyForPlugin( _PLUGIN, "photoId" )
 						end )
 
 						LrApplication:activeCatalog():withWriteAccessDo( "", function()
@@ -821,7 +833,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 	end
 
 	if isPublish then
-		logger:trace( "Colection: " .. publishedCollectionInfo.name )
+		logger:trace( "Collection: " .. publishedCollectionInfo.name )
 		logger:trace( "URL: " .. publishedCollectionInfo.remoteUrl )
 		logger:trace( "ID: " .. publishedCollectionInfo.remoteId )
 	end
