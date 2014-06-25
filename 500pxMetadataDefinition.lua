@@ -20,6 +20,9 @@ return {
 			id = "nsfw",
 			title = "Mature Content",
 			dataType = "enum",
+			searchable = true,
+			browsable = true,
+			version = 1,
 			values = {
 				{ value = 0, title = "No" },
 				{ value = 1, title = "Yes" },
@@ -29,6 +32,9 @@ return {
 			id = "license_type",
 			title = "License Type",
 			dataType = "enum",
+			searchable = true,
+			browsable = true,
+			version = 1,
 			values = {
 				{ value = 0, title = "Standard 500px License" },
 				{ value = 4, title = "Attribution 3.0" },
@@ -43,6 +49,9 @@ return {
 			id = "category",
 			title = "Category",
 			dataType = "enum",
+			searchable = true,
+			browsable = true,
+			version = 1,
 			values = {
 				{ value = 10, 	title="Abstract" },
 				{ value = 11, 	title="Animals" },
