@@ -124,7 +124,7 @@ function PxUser.sync( propertyTable )
 			username = propertyTable.username,
 			sort = "created_at",
 			rpp = 1,
-			image_size=0,
+			image_size = 5,
 		}
 
 		local dir = LrPathUtils.child(LrPathUtils.child( LrPathUtils.getStandardFilePath( "pictures" ), "500px" ), propertyTable.username )
