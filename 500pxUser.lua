@@ -256,7 +256,9 @@ function PxUser.sync( propertyTable )
 					local collectionInfo = collectionsById[ id ]
 					collection = collectionInfo.collection
 					photos = collectionInfo.photos
-					collection:setName( collectionObj.title )
+					if collection:getName() ~= collectionObj.title and not collection:setName( collectionObj.title ) then
+						LrDialogs.showError( "Could not rename collection '" .. collection:getName() .. "' to '" .. collectionObj.title .. "' as another collection with that name already exists." )
+					end
 					collectionSettings = collection:getCollectionInfoSummary().collectionSettings or {}
 				elseif collectionsByName[ collectionObj.title ] then
 					-- collection has not been published yet, set it's remote id
@@ -267,6 +269,10 @@ function PxUser.sync( propertyTable )
 				else
 					-- collection doesn't exist, create it
 					collection = publishService:createPublishedCollection( collectionObj.title,  nil, true )
+					if not collection then
+						LrDialogs.showError( "Could not create the collection '" .. collectionObj.title .. "' as another collection with that name already exists." )
+						return
+					end
 					photos = {}
 					collection:setRemoteId( id )
 					collectionSettings = { toCommunity = propertyTable.toCommunity }
@@ -296,42 +302,45 @@ function PxUser.sync( propertyTable )
 
 			LrTasks.yield()
 
-			-- add photos to the collection
-			for _, photoObj in ipairs( collectionObj.photos ) do
-				local photoInfo = publishedPhotos[ tostring( photoObj.id ) ]
-
-				if PluginInit then PluginInit.lock() end
-				publishService.catalog:withWriteAccessDo( "sync.sync", function()
-					if photoInfo then
-						photos[ photoInfo.photo ] = true
-						collection:addPhotoByRemoteId( photoInfo.photo, string.format("%i-%s", photoObj.id, tostring( collectionObj.id ) ), string.format( "http://500px.com/photo/%i", photoObj.id ), not photoInfo.edited )
-						progressScope:setPortionComplete( i / ( nInCollections + nPhotos ) )
-					end
-				end)
-				if PluginInit then PluginInit.unlock() end
-
-				i = i + 1
-				LrTasks.yield()
-			end
-
-			-- delete photos that were deleted from the web
-			local photosToRemove = {}
-
-			if not new then
-				if not progressScope:isCanceled() then
-					for _, publishedPhoto in ipairs( collection:getPublishedPhotos() ) do
-						if not photos[ publishedPhoto:getPhoto() ] then
-							table.insert( photosToRemove, publishedPhoto:getPhoto() )
-						end
-					end
+			if collection then
+				-- add photos to the collection
+				for _, photoObj in ipairs( collectionObj.photos ) do
+					local photoInfo = publishedPhotos[ tostring( photoObj.id ) ]
 
 					if PluginInit then PluginInit.lock() end
 					publishService.catalog:withWriteAccessDo( "sync.sync", function()
-						collection:removePhotos( photosToRemove )
-					end )
+						if photoInfo then
+							photos[ photoInfo.photo ] = true
+							collection:addPhotoByRemoteId( photoInfo.photo, string.format("%i-%s", photoObj.id, tostring( collectionObj.id ) ), string.format( "http://500px.com/photo/%i", photoObj.id ), not photoInfo.edited )
+							progressScope:setPortionComplete( i / ( nInCollections + nPhotos ) )
+						end
+					end)
 					if PluginInit then PluginInit.unlock() end
+
+					i = i + 1
+					LrTasks.yield()
+				end
+
+				-- delete photos that were deleted from the web
+				local photosToRemove = {}
+
+				if not new then
+					if not progressScope:isCanceled() then
+						for _, publishedPhoto in ipairs( collection:getPublishedPhotos() ) do
+							if not photos[ publishedPhoto:getPhoto() ] then
+								table.insert( photosToRemove, publishedPhoto:getPhoto() )
+							end
+						end
+
+						if PluginInit then PluginInit.lock() end
+						publishService.catalog:withWriteAccessDo( "sync.sync", function()
+							collection:removePhotos( photosToRemove )
+						end )
+						if PluginInit then PluginInit.unlock() end
+					end
 				end
 			end
+
 			progressScope:setPortionComplete( i / ( nInCollections + nPhotos ) )
 			i = i + 1
 			LrTasks.yield()
@@ -422,7 +431,9 @@ function PxUser.syncCollections( propertyTable )
 					local collectionInfo = collectionsById[ id ]
 					collection = collectionInfo.collection
 					photos = collectionInfo.photos
-					collection:setName( collectionObj.title )
+					if collection:getName() ~= collectionObj.title and not collection:setName( collectionObj.title ) then
+						LrDialogs.showError( "Could not rename collection '" .. collection:getName() .. "' to '" .. collectionObj.title .. "' as another collection with that name already exists." )
+					end
 					collectionSettings = collection:getCollectionInfoSummary().collectionSettings or {}
 				elseif collectionsByName[ collectionObj.title ] then
 					-- collection has not been published yet, set it's remote id
@@ -434,6 +445,10 @@ function PxUser.syncCollections( propertyTable )
 				else
 					-- collection doesn't exist, create it
 					collection = publishService:createPublishedCollection( collectionObj.title, false, nil )
+					if not collection then
+						LrDialogs.showError( "Could not create the collection '" .. collectionObj.title .. "' as another collection with that name already exists." )
+						return
+					end
 					photos = {}
 					collection:setRemoteId( id )
 					collectionSettings = { toCommunity = propertyTable.toCommunity }
