@@ -127,7 +127,7 @@ local function setPresets( propertyTable )
 		propertyTable.LR_size_doConstrain = false
 		propertyTable.LR_removeLocationMetadata = false
 	end
-	propertyTable.syncCollectionsOnly = false
+	propertyTable.syncCollectionsOnly = true
 end
 
 function exportServiceProvider.startDialog( propertyTable )
@@ -220,8 +220,15 @@ function exportServiceProvider.sectionsForTopOfDialog( f, propertyTable )
 				height_in_lines = 6,
 			},
 			f:checkbox {
-				title = "Only sync my collection names",
+				title = "Refresh collection names",
 				value = bind "syncCollectionsOnly",
+			},
+			f:static_text {
+				width = 100,
+				fill_horizontal = 1,
+				font = "<system/small/bold>",
+				title = "You can sync the previews of the photos by unchecking the checkbox above. Please note that depending on the size of your portfolio, this may take several hours.",
+				height_in_lines = 2,
 			},
 			f:column {
 				place = "overlapping",
