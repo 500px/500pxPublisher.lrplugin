@@ -82,7 +82,7 @@ end
 function PxUser.sync( propertyTable )
 
 	local publishService = propertyTable.LR_publishService
-	local e = false
+	local errormessage = nil
 	local function doSync( context, progressScope )
 		LrDialogs.attachErrorDialogToFunctionContext( context )
 		logger:trace( "sync all" )
@@ -104,7 +104,7 @@ function PxUser.sync( propertyTable )
 		local nInCollections = 0
 		local success, obj = PxAPI.getCollections( propertyTable )
 		if not success then
-			e = true
+			errormessage = "Unable to retrieve list of collections from 500px."
 			obj = { collections = {} }
 		end
 
@@ -118,13 +118,14 @@ function PxUser.sync( propertyTable )
 
 		-- Sync the photos
 		local nPages = 0
-		local page = 0
 		local args = {
 			feature = "user_library",
 			username = propertyTable.username,
+			user_id = propertyTable.userId,
 			sort = "created_at",
-			rpp = 1,
-			image_size=0,
+			page = 1,
+			rpp = 50,
+			image_size = 5,
 		}
 
 		local dir = LrPathUtils.child(LrPathUtils.child( LrPathUtils.getStandardFilePath( "pictures" ), "500px" ), propertyTable.username )
@@ -136,29 +137,27 @@ function PxUser.sync( propertyTable )
 		local nPhotos
 		local i = 0
 
-		args.user_id = propertyTable.userId
-		args.page = 1
 		local success, obj = PxAPI.getPhotos( propertyTable, args)
-		if not success then
-			e = true
-			obj = { total_items = 0 }
+		if success and obj.total_items >= 0 and obj.total_pages >= 0 then
+			nPhotos = obj.total_items
+			nPages = obj.total_pages
+		else
+			if success then
+				errormessage = "Invalid response from 500px API."
+			else
+				errormessage = "Unable to retrieve list of photos from 500px."
+			end
+			success = false
+			nPhotos = 0
+			nPages = 0
 		end
-		nPhotos = obj.total_items
 
-		while true and nPhotos ~= 0 do
+		while success do
 			if progressScope:isCanceled() then
 				progressScope:setCaption("Cancelling...")
 				break
 			end
-			args.page = nPhotos - page
-			if args.page == 0 then args.page = 1 end
-			local success, obj = PxAPI.getPhotos( propertyTable, args )
-			if not success then
-				e = true
-				break
-			end
-			nPhotos = obj.total_items
-			npages = obj.total_pages
+
 			for _, photoObj in ipairs( obj.photos ) do
 				if PluginInit then PluginInit.lock() end
 				publishService.catalog:withWriteAccessDo( "sync.sync", function()
@@ -180,8 +179,8 @@ function PxUser.sync( propertyTable )
 							photoInfo = { photo = photo, edited = false }
 							publishedPhotos[ tostring( photoObj.id ) ] = photoInfo
 						else
+							errormessage = "Some of your photos failed to download."
 							logger:trace( "No photo from the server")
-							e = true
 						end
 					else
 						photoInfo.published = true
@@ -218,14 +217,17 @@ function PxUser.sync( propertyTable )
 
 				if PluginInit then PluginInit.unlock() end
 
+				i = i + 1
+				progressScope:setPortionComplete( i / ( nInCollections + nPhotos ) )
 				LrTasks.yield()
 			end
 
-			progressScope:setPortionComplete( i / ( nInCollections + nPhotos ) )
-			i = i + 1
-			--if obj.total_pages <= obj.current_page then break end
-			page = page + 1
-			if obj.total_pages <= page or obj.total_pages == 0 then break end
+			args.page = args.page + 1
+			if args.page > nPages then break end
+			success, obj = PxAPI.getPhotos( propertyTable, args )
+			if not success then
+				errormessage = "Unable to retrieve list of photos from 500px."
+			end
 		end
 
 		-- ...add in the "Profile" and "Library"  collection
@@ -311,6 +313,7 @@ function PxUser.sync( propertyTable )
 				if PluginInit then PluginInit.unlock() end
 
 				i = i + 1
+				progressScope:setPortionComplete( i / ( nInCollections + nPhotos ) )
 				LrTasks.yield()
 			end
 
@@ -332,8 +335,8 @@ function PxUser.sync( propertyTable )
 					if PluginInit then PluginInit.unlock() end
 				end
 			end
-			progressScope:setPortionComplete( i / ( nInCollections + nPhotos ) )
 			i = i + 1
+			progressScope:setPortionComplete( i / ( nInCollections + nPhotos ) )
 			LrTasks.yield()
 		end
 
@@ -362,11 +365,11 @@ function PxUser.sync( propertyTable )
 			functionContext = context,
 		} )
 		doSync( context, progressScope )
-	end )
 
-	if e then
-		LrErrors.throwUserError( "Something went wrong while syncing your photos. Some of your photos may not have been imported. Please try again later." )
-	end
+		if errormessage then
+			LrErrors.throwUserError( errormessage .. "\nSome of your photos may not have been imported. Please try again later." )
+		end
+	end )
 end
 
 function PxUser.syncCollections( propertyTable )
