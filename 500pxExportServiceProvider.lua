@@ -772,6 +772,18 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 		end
 	end
 
+	if publishedCollection then
+		LrApplication:activeCatalog():withReadAccessDo( function()
+			for _, photo in ipairs( publishedCollection:getPublishedPhotos() ) do
+				local pid = photo:getPhoto():getPropertyForPlugin( _PLUGIN, "photoId" )
+				if pid and not string.match( photoList, string.format( ",%s,", pid ) ) then
+					logger:trace( "Added missing photo to list: " .. pid )
+					photoList = string.format( "%s%i,", photoList, pid )
+				end
+			end
+		end )
+	end
+
 	-- create the collection if it doesn't already exist
 	if not remoteCollection and not publishedCollectionInfo.isDefaultCollection then
 		if not propertyTable.isUserAwesome and not propertyTable.isUserPlus then
@@ -801,8 +813,8 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 				if publishedCollection then
 					for _, photo in ipairs( publishedCollection:getPublishedPhotos() ) do
 						local pid
-						LrApplication:activeCatalog():withReadAccessDo( "", function()
-							pid = photo.photo:getPropertyForPlugin( _PLUGIN, "photoId" )
+						LrApplication:activeCatalog():withReadAccessDo( function()
+							pid = photo:getPhoto():getPropertyForPlugin( _PLUGIN, "photoId" )
 						end )
 
 						LrApplication:activeCatalog():withWriteAccessDo( "", function()
@@ -821,161 +833,161 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 	end
 
 	if isPublish then
-		logger:trace( "Colection: " .. publishedCollectionInfo.name )
+		logger:trace( "Collection: " .. publishedCollectionInfo.name )
 		logger:trace( "URL: " .. publishedCollectionInfo.remoteUrl )
 		logger:trace( "ID: " .. publishedCollectionInfo.remoteId )
 	end
 
-		local photos = getPhotoInfo( exportContext )
-		local uploadLimit = propertyTable.uploadLimit or 0
+	local photos = getPhotoInfo( exportContext )
+	local uploadLimit = propertyTable.uploadLimit or 0
 
-		logger:trace( "Upload limit: " .. tostring(uploadLimit) )
-		local uploadCount = 0
+	logger:trace( "Upload limit: " .. tostring(uploadLimit) )
+	local uploadCount = 0
 
-		for i, data in pairs( photos ) do
-			local rendition = data.rendition
-			local photoInfo = data.photoInfo
-			progressScope:setPortionComplete( ( i - 1 ) / nPhotos )
-			local photo = rendition.photo
-			if not photoInfo.skipped and not photoInfo.failed then
+	for i, data in pairs( photos ) do
+		local rendition = data.rendition
+		local photoInfo = data.photoInfo
+		progressScope:setPortionComplete( ( i - 1 ) / nPhotos )
+		local photo = rendition.photo
+		if not photoInfo.skipped and not photoInfo.failed then
 
-				logger:trace(" -- LR Photo status: " .. tostring(photoInfo.status))
+			logger:trace(" -- LR Photo status: " .. tostring(photoInfo.status))
 
-				local success = true, obj
+			local success = true, obj
 
-				if progressScope.isCancelled then break end
+			if progressScope.isCancelled then break end
 
-				if not photoInfo.id and not (propertyTable.isUserAwesome or propertyTable.isUserPlus) and uploadLimit <= 0 then
-					logger:trace( "Upload limit reached." .. tostring(uploadLimit) )
-					rendition:uploadFailed( "You have reached your weekly upload limit after 10 uploads on a basic account."  .. uploadLimit)
-					photoInfo.failed = true
-				else
-					photoid = photoInfo.id
-					photostatus = photoInfo.status
+			if not photoInfo.id and not (propertyTable.isUserAwesome or propertyTable.isUserPlus) and uploadLimit <= 0 then
+				logger:trace( "Upload limit reached." .. tostring(uploadLimit) )
+				rendition:uploadFailed( "You have reached your weekly upload limit after 10 uploads on a basic account."  .. uploadLimit)
+				photoInfo.failed = true
+			else
+				photoid = photoInfo.id
+				photostatus = photoInfo.status
 
-					if photostatus == 9 then
-						photoid = nil
-						photoInfo.privacy = 1
-					end
-
-					local args = {
-						photo_id = photoid,
-						name = photoInfo.title,
-						description = photoInfo.description,
-						category = photoInfo.category,
-						privacy = photoInfo.privacy,
-						nsfw = booleanToNumber( photoInfo.nsfw ),
-						license_type = photoInfo.license_type,
-						lens = photoInfo.lens
-					}
-
-					if photoInfo.privacy == 1 and publishedCollectionInfo.toCommunity then
-						photoInfo.privacy = 0
-						args.privacy = 0
-					end
-					success, obj = PxAPI.postPhoto( propertyTable, args )
-					photoInfo.uploadKey = obj.upload_key
-					if obj.photo then photoInfo.id = tostring( obj.photo.id ) end
+				if photostatus == 9 then
+					photoid = nil
+					photoInfo.privacy = 1
 				end
 
-				-- update the collection
-				if not success then
-					logger:trace( "photo upload failed" )
-					rendition:uploadFailed( "Could not upload this photo. It probably already exists on 500px, please try to publish it again." )
-					photoInfo.failed = true
-				elseif photoInfo.tags and not photoInfo.failed then
-					local args = {
-						photo_id = photoInfo.id,
-						tags = photoInfo.tags,
-						previous_tags = photoInfo.previous_tags,
-					}
-					success, _ = PxAPI.setPhotoTags( propertyTable, args )
+				local args = {
+					photo_id = photoid,
+					name = photoInfo.title,
+					description = photoInfo.description,
+					category = photoInfo.category,
+					privacy = photoInfo.privacy,
+					nsfw = booleanToNumber( photoInfo.nsfw ),
+					license_type = photoInfo.license_type,
+					lens = photoInfo.lens
+				}
+
+				if photoInfo.privacy == 1 and publishedCollectionInfo.toCommunity then
+					photoInfo.privacy = 0
+					args.privacy = 0
 				end
-
-				if not success and not photoInfo.failed then
-					logger:trace( "updating tags failed" )
-					rendition:uploadFailed( "Could not connect to 500px." )
-					photoInfo.failed = true
-				elseif not publishedCollectionInfo.isDefaultCollection and not string.match( photoList, string.format( ",%s,", photoInfo.id ) ) and not photoInfo.failed then
-					logger:trace( "updating collection..." )
-
-					photoList = string.format( "%s%s,", photoList, photoInfo.id )
-
-					local args = {
-						collection_id = publishedCollectionInfo.remoteId,
-						photo_ids = string.sub( photoList, 2, string.len( photoList ) - 1 ),
-					}
-
-					success, obj = PxAPI.postCollection( propertyTable, args )
-					if obj == "other" then
-						LrErrors.throwUserError( "Sorry, you have to upgrade to work with Sets." )
-					end
-				end
-
-				-- upload the photo
-				if not success and not photoInfo.failed then
-					logger:trace( "unabled to update collection" )
-					rendition:uploadFailed( "Unable to add this photo to your portfolio." )
-					photoInfo.failed = true
-				elseif photoInfo.uploadKey and not photoInfo.failed then
-					logger:trace( "uploading photo" )
-					local args = {
-						photo_id = photoInfo.id,
-						upload_key = photoInfo.uploadKey,
-						access_key = propertyTable.credentials.oauth_token,
-						file_path = photoInfo.path,
-					}
-					success, obj = PxAPI.upload( args )
-					uploadLimit = uploadLimit - 1
-				end
-
-				-- record remote id and url
-				if not success and not photoInfo.failed then
-					logger:trace( "upload failed." )
-					rendition:uploadFailed( "Could not connect to 500px." )
-					photoInfo.failed = true
-					uploadLimit = uploadLimit + 1
-				elseif not photoInfo.failed then
-					-- uploadLimit = uploadLimit - 1
-					if isPublish then
-
-						if PluginInit then PluginInit.lock() end
-						LrApplication:activeCatalog():withWriteAccessDo( "publish", function( context )
-							photo:setPropertyForPlugin( _PLUGIN, "photoId", tostring( photoInfo.id ) )
-
-							rendition:recordPublishedPhotoId( string.format( "%s-%s", photoInfo.id, publishedCollectionInfo.remoteId ) )
-							rendition:recordPublishedPhotoUrl( string.format( "http://500px.com/photo/%s", photoInfo.id ) )
-
-							photo:setPropertyForPlugin( _PLUGIN, "publishedUUID", photo:getRawMetadata( "uuid" ) )
-
-							-- this is stupid, but has to be here for LR4 and keywords. Photos all be marked as modified when you change you metadata in the upload dialog
-							exportContext.publishedCollection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, publishedCollectionInfo.remoteId ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
-
-							-- mark all photo is published in all collections it belongs to
-							if photoInfo.collections then
-								for _, collection in ipairs( photoInfo.collections ) do
-									collection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, collection:getRemoteId() ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
-								end
-							end
-
-							-- add photo to "Library"
-							if not publishedCollectionInfo.isAllPhotosCollection and allPhotosCollection then
-								allPhotosCollection:addPhotoByRemoteId( photo, string.format( "%s-nil", photoInfo.id ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
-							end
-
-							-- add photo to "Profile"
-							if photoInfo.privacy == 0 and not publishedCollectionInfo.isProfileCollection then
-								profileCollection:addPhotoByRemoteId( photo, string.format( "%s-profile", photoInfo.id ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
-							end
-						end )
-						if PluginInit then PluginInit.unlock() end
-					end
-				end
-
-				LrFileUtils.delete( photoInfo.path )
-				progressScope:setPortionComplete( ( i - 0.5 ) / nPhotos )
+				success, obj = PxAPI.postPhoto( propertyTable, args )
+				photoInfo.uploadKey = obj.upload_key
+				if obj.photo then photoInfo.id = tostring( obj.photo.id ) end
 			end
+
+			-- update the collection
+			if not success then
+				logger:trace( "photo upload failed" )
+				rendition:uploadFailed( "Could not upload this photo. It probably already exists on 500px, please try to publish it again." )
+				photoInfo.failed = true
+			elseif photoInfo.tags and not photoInfo.failed then
+				local args = {
+					photo_id = photoInfo.id,
+					tags = photoInfo.tags,
+					previous_tags = photoInfo.previous_tags,
+				}
+				success, _ = PxAPI.setPhotoTags( propertyTable, args )
+			end
+
+			if not success and not photoInfo.failed then
+				logger:trace( "updating tags failed" )
+				rendition:uploadFailed( "Could not connect to 500px." )
+				photoInfo.failed = true
+			elseif not publishedCollectionInfo.isDefaultCollection and not string.match( photoList, string.format( ",%s,", photoInfo.id ) ) and not photoInfo.failed then
+				logger:trace( "updating collection..." )
+
+				photoList = string.format( "%s%s,", photoList, photoInfo.id )
+
+				local args = {
+					collection_id = publishedCollectionInfo.remoteId,
+					photo_ids = string.sub( photoList, 2, string.len( photoList ) - 1 ),
+				}
+
+				success, obj = PxAPI.postCollection( propertyTable, args )
+				if obj == "other" then
+					LrErrors.throwUserError( "Sorry, you have to upgrade to work with Sets." )
+				end
+			end
+
+			-- upload the photo
+			if not success and not photoInfo.failed then
+				logger:trace( "unabled to update collection" )
+				rendition:uploadFailed( "Unable to add this photo to your portfolio." )
+				photoInfo.failed = true
+			elseif photoInfo.uploadKey and not photoInfo.failed then
+				logger:trace( "uploading photo" )
+				local args = {
+					photo_id = photoInfo.id,
+					upload_key = photoInfo.uploadKey,
+					access_key = propertyTable.credentials.oauth_token,
+					file_path = photoInfo.path,
+				}
+				success, obj = PxAPI.upload( args )
+				uploadLimit = uploadLimit - 1
+			end
+
+			-- record remote id and url
+			if not success and not photoInfo.failed then
+				logger:trace( "upload failed." )
+				rendition:uploadFailed( "Could not connect to 500px." )
+				photoInfo.failed = true
+				uploadLimit = uploadLimit + 1
+			elseif not photoInfo.failed then
+				-- uploadLimit = uploadLimit - 1
+				if isPublish then
+
+					if PluginInit then PluginInit.lock() end
+					LrApplication:activeCatalog():withWriteAccessDo( "publish", function( context )
+						photo:setPropertyForPlugin( _PLUGIN, "photoId", tostring( photoInfo.id ) )
+
+						rendition:recordPublishedPhotoId( string.format( "%s-%s", photoInfo.id, publishedCollectionInfo.remoteId ) )
+						rendition:recordPublishedPhotoUrl( string.format( "http://500px.com/photo/%s", photoInfo.id ) )
+
+						photo:setPropertyForPlugin( _PLUGIN, "publishedUUID", photo:getRawMetadata( "uuid" ) )
+
+						-- this is stupid, but has to be here for LR4 and keywords. Photos all be marked as modified when you change you metadata in the upload dialog
+						exportContext.publishedCollection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, publishedCollectionInfo.remoteId ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
+
+						-- mark all photo is published in all collections it belongs to
+						if photoInfo.collections then
+							for _, collection in ipairs( photoInfo.collections ) do
+								collection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, collection:getRemoteId() ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
+							end
+						end
+
+						-- add photo to "Library"
+						if not publishedCollectionInfo.isAllPhotosCollection and allPhotosCollection then
+							allPhotosCollection:addPhotoByRemoteId( photo, string.format( "%s-nil", photoInfo.id ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
+						end
+
+						-- add photo to "Profile"
+						if photoInfo.privacy == 0 and not publishedCollectionInfo.isProfileCollection then
+							profileCollection:addPhotoByRemoteId( photo, string.format( "%s-profile", photoInfo.id ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
+						end
+					end )
+					if PluginInit then PluginInit.unlock() end
+				end
+			end
+
+			LrFileUtils.delete( photoInfo.path )
+			progressScope:setPortionComplete( ( i - 0.5 ) / nPhotos )
 		end
+	end
 
 	-- record remote id and url
 	if isPublish then
