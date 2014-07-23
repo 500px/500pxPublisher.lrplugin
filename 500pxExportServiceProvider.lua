@@ -879,8 +879,8 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 
 				local args = {
 					photo_id = photoid,
-					name = photoInfo.title,
-					description = photoInfo.description,
+					name = PxAPI.encodeString( photoInfo.title ),
+					description = PxAPI.encodeString( photoInfo.description ),
 					category = photoInfo.category,
 					privacy = photoInfo.privacy,
 					nsfw = booleanToNumber( photoInfo.nsfw ),
