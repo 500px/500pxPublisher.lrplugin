@@ -31,8 +31,7 @@ end
 
 local function storedCredentialsAreValid( propertyTable )
 	-- might want to check the length of oauth token and secret
-	return propertyTable.username and string.len( propertyTable.username ) > 0
-		and propertyTable.credentials and propertyTable.credentials.oauth_token
+	return propertyTable.credentials and propertyTable.credentials.oauth_token
 		and propertyTable.credentials.oauth_token_secret
 end
 
@@ -525,57 +524,8 @@ function PxUser.login( propertyTable )
 			-- error dialog?
 		end )
 
-		local userinfo = LrBinding.makePropertyTable( context )
-		local f = LrView.osFactory()
-		local contents = f:column {
-			bind_to_object = userinfo,
-			place = "overlapping",
-			fill = 1,
-			f:picture {
-				value = _PLUGIN:resourceId( "login.png" )
-			},
-			f:column {
-				spacing = f:control_spacing(),
-				f:spacer {
-					height = 170,
-				},
-				f:row {
-					spacing = f:label_spacing(),
-					f:static_text {
-						title = "Username:",
-						alignment = "right",
-						width = 100,
-					},
-					f:edit_field {
-						width = 300,
-						value = bind "username",
-					},
-				},
-				f:row {
-					spacing = f:label_spacing(),
-					f:static_text {
-						title = "Password:",
-						alignment = "right",
-						width = 100,
-					},
-					f:password_field {
-						width = 300,
-						value = bind "password",
-					}
-				},
-			},
-		}
-		local action = LrDialogs.presentModalDialog( {
-			title = "Login to 500px.",
-			contents = contents,
-			actionVerb = "Login!"
-		} )
-
-		if action == "cancel" then return end
-
 		propertyTable.accountStatus = "Waiting for response from 500px..."
-		propertyTable.username = userinfo.username
-		propertyTable.credentials = PxAPI.login( userinfo )
+		propertyTable.credentials = PxAPI.login( context )
 		PxUser.updateUserStatusTextBindings( propertyTable )
 	end )
 end
@@ -765,7 +715,7 @@ function PxUser.verifyLogin( propertyTable )
 			PxUser.updateUserStatusTextBindings( propertyTable )
 		end )
 	end
-	propertyTable:addObserver( "credentials", updateStatus )
+	propertyTable:addObserver( "username", updateStatus )
 	updateStatus()
 end
 
