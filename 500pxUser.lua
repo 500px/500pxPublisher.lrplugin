@@ -189,8 +189,8 @@ function PxUser.sync( propertyTable )
 					if photoInfo then
 						local photo = photoInfo.photo
 						if not photoInfo.edited then
-							photo:setRawMetadata( "title", photoObj.name or "" )
-							photo:setRawMetadata( "caption", photoObj.description or "" )
+							photo:setRawMetadata( "title", PxAPI.decodeString( photoObj.name or "" ) )
+							photo:setRawMetadata( "caption", PxAPI.decodeString( photoObj.description or "" ) )
 
 							if photoObj.category and photoObj.category > 0 then
 								photo:setPropertyForPlugin( _PLUGIN, "category", photoObj.category )

@@ -179,6 +179,16 @@ end
 
 PxAPI = {  }
 
+function PxAPI.encodeString( str )
+	-- Lightroom uses the unicode LINE SEPARATOR but the API uses to more regular newline.
+	return string.gsub( str, string.char( 0xE2, 0x80, 0xA8 ), "\n" )
+end
+
+function PxAPI.decodeString( str )
+	-- Lightroom uses the unicode LINE SEPARATOR but the API uses to more regular newline.
+	return string.gsub( str, "\n", string.char( 0xE2, 0x80, 0xA8 ) )
+end
+
 function PxAPI.makeCollectionUrl( domain, path )
 	if domain and path then
 		return "http://500px.com/" .. domain .. "/sets/" .. path

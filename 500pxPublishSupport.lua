@@ -314,7 +314,7 @@ function publishServiceProvider.getCommentsFromPublishedCollection( publishSetti
 					for _, comment in ipairs( comments) do
 						table.insert( commentList, {
 							commentId = comment.id,
-							commentText = comment.body,
+							commentText = PxAPI.decodeString( comment.body ),
 							dateCreated = formatDate( comment.created_at ),
 							username = comment.user.username,
 							realname = comment.user.fullname,
@@ -381,7 +381,7 @@ function publishServiceProvider.addCommentToPublishedPhoto( publishSettings, rem
 	local photoId, collectionId = string.match( remotePhotoId, "([^-]+)-([^-]+)" )
 	local success, _ = PxAPI.postComment( publishSettings, {
 		photo_id = photoId,
-		body = commentText,
+		body = PxAPI.encodeString( commentText ),
 	} )
 	return success
 end
