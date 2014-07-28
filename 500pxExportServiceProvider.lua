@@ -101,7 +101,6 @@ exportServiceProvider.exportPresetFields = {
 	{ key = "toCommunity", default = false },
 	{ key = "credentials", default = nil },
 	{ key = "validAccount", default = false },
-	{ key = "doNotShowInfoScreen", default = false },
 	{ key = "license_type", default = 0 },
 	{ key = "syncNow", default = true },
 }
@@ -264,14 +263,6 @@ function exportServiceProvider.sectionsForTopOfDialog( f, propertyTable )
 					end },
 			},
 		} )
-
-		table.insert( sections, {
-			title = "500px Publisher Settings",
-			f:checkbox {
-				title = "Show advanced publish screen",
-				value = LrBinding.negativeOfKey( "doNotShowInfoScreen" ),
-			}
-		} )
 	else
 		table.insert( sections, {
 			title = "500px Settings",
@@ -403,12 +394,6 @@ function exportServiceProvider.sectionsForTopOfDialog( f, propertyTable )
 					end,
 				},
 			},
-			f:row {
-				f:checkbox {
-					title = "Show advanced export screen",
-					value = LrBinding.negativeOfKey( "doNotShowInfoScreen" ),
-				}
-			}
 		} )
 	end
 	return sections
@@ -502,168 +487,6 @@ function getPhotoInfo( exportContext )
 			end
 		end
 
-		-- allow user to change metadata
-		if not propertyTable.doNotShowInfoScreen and not photoInfo.failed then
-			local f = LrView:osFactory()
-
-			local contents = f:column {
-				spacing = f:control_spacing(),
-				bind_to_object = photoInfo,
-				f:row {
-					spacing = f:control_spacing(),
-					f:picture {
-						value = photoInfo.path,
-						width = 150,
-						height = 150,
-					},
-					f:column {
-						spacing = f:control_spacing(),
-						f:column {
-							spacing = f:label_spacing(),
-							f:static_text {
-								title = "Title",
-							},
-							f:edit_field {
-								value = bind {
-									key = "title",
-									transform = function( value, fromTable )
-										photoInfo.title = value
-										return stripAllTags( value )
-									end,
-								},
-								width = 200,
-							},
-						},
-						f:column {
-							spacing = f:label_spacing(),
-							f:static_text {
-								title = "Description",
-							},
-							f:edit_field {
-								value = bind {
-									key = "description",
-									transform = function( value, fromTable )
-										photoInfo.description = value
-										return stripAllTags( value )
-
-									end,
-								},
-								width = 200,
-								height_in_lines = 3,
-							},
-						},
-						f:column {
-							spacing = f:label_spacing(),
-							f:static_text {
-								title = "Tags",
-							},
-							f:edit_field {
-								value = bind "tags",
-								width = 200,
-								height_in_lines = 2,
-							},
-						},
-						f:column {
-							spacing = f:label_spacing(),
-							f:static_text {
-								title = "Category",
-							},
-							f:popup_menu {
-								items = {
-									{ value = 10, 	title="Abstract" },
-									{ value = 11, 	title="Animals" },
-									{ value = 5, 	title="Black and White" },
-									{ value = 1, 	title="Celebrities" },
-									{ value = 9, 	title="City and Architecture" },
-									{ value = 15, 	title="Commercial" },
-									{ value = 16, 	title="Concert" },
-									{ value = 20, 	title="Family" },
-									{ value = 14, 	title="Fashion" },
-									{ value = 2, 	title="Film" },
-									{ value = 24, 	title="Fine Art" },
-									{ value = 23, 	title="Food" },
-									{ value = 3, 	title="Journalism" },
-									{ value = 8, 	title="Landscapes" },
-									{ value = 12, 	title="Macro" },
-									{ value = 18, 	title="Nature" },
-									{ value = 4, 	title="Nude" },
-									{ value = 7, 	title="People" },
-									{ value = 19, 	title="Performing Arts" },
-									{ value = 17, 	title="Sport" },
-									{ value = 6, 	title="Still Life" },
-									{ value = 21, 	title="Street" },
-									{ value = 26, 	title="Transportation" },
-									{ value = 13, 	title="Travel" },
-									{ value = 22, 	title="Underwater" },
-									{ value = 27, 	title="Urban Exploration" },
-									{ value = 25, 	title="Wedding" },
-									{ value = 0, 	title="Uncategorized" }
-								},
-								value = bind "category"
-							},
-						},
-						f:column {
-							spacing = f:label_spacing(),
-							f:static_text {
-								title = "License Type",
-							},
-							f:popup_menu {
-								items = {
-									{ value = 0, title = "Standard 500px License" },
-									{ value = 4, title = "Attribution 3.0" },
-									{ value = 5, title = "Attribution-NoDerivs 3.0" },
-									{ value = 6, title = "Attribution-ShareAlike 3.0" },
-									{ value = 1, title = "Attribution-NonCommercial 3.0" },
-									{ value = 2, title = "Attribution-NonCommercial-NoDerivs 3.0" },
-									{ value = 3, title = "Attribution-NonCommercial-ShareAlike 3.0" },
-								},
-								value = bind "license_type"
-							},
-						},
-						f:checkbox {
-							width = 250,
-							fill_horizontal = 1,
-						 	title = "Mature Content",
-							value = bind "nsfw"
-						},
-					},
-				},
-				f:static_text {
-					visible = LrBinding.keyEquals( "status", 1 ),
-					width = 350,
-					title = "Republishing this photo will only update it's title, description, category and tags.",
-					height_in_lines = 2,
-					text_color = LrColor( "red" )
-				},
-
-				f:static_text {
-					visible = LrBinding.keyEquals( "status", 9 ),
-					width = 350,
-					title = "This photo has been published and deleted previously. ",
-					height_in_lines = 2,
-					text_color = LrColor( "red" )
-				},
-				f:checkbox {
-					bind_to_object = propertyTable,
-					value = bind "doNotShowInfoScreen",
-					title = "Do not show this window until the next time I publish.",
-				}
-			}
-
-			local action = LrDialogs.presentModalDialog {
-				title = "Photo Details",
-				contents = contents,
-				cancelVerb = "Skip",
-			}
-
-			if action == "cancel" then
-				photoInfo.skipped = true
-			end
-		end
-
-		-- update photo's metadata
-		if not photoInfo.skipped then
-
 		if PluginInit then PluginInit.lock() end
 		-- logger:trace("write photo info")
 		photo.catalog:withWriteAccessDo( "write photo info", function()
@@ -679,7 +502,6 @@ function getPhotoInfo( exportContext )
 		end )
 		if PluginInit then PluginInit.unlock() end
 
-		end
 		table.insert( photos, { ["rendition"] = rendition, ["photoInfo"] = photoInfo } )
 	end
 
@@ -856,7 +678,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 		local photoInfo = data.photoInfo
 		progressScope:setPortionComplete( ( i - 1 ) / nPhotos )
 		local photo = rendition.photo
-		if not photoInfo.skipped and not photoInfo.failed then
+		if not photoInfo.failed then
 
 			logger:trace(" -- LR Photo status: " .. tostring(photoInfo.status))
 
