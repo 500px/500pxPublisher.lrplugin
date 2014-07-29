@@ -682,6 +682,8 @@ function PxUser.register( propertyTable )
 			propertyTable.credentials = obj
 
 			PxUser.updateUserStatusTextBindings( propertyTable )
+		elseif obj.created then
+			LrDialogs.message( "Login Failed", "Your account was created but logging in failed. Please try logging in again later." )
 		elseif obj.email then
 			LrDialogs.message( "Unable to Create an Account", "The email address is not valid or has already been used. Please use a different email address." )
 		elseif obj.username then
