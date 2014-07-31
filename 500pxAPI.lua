@@ -456,8 +456,46 @@ function PxAPI.register( userInfo )
 		email = userInfo.email,
 	} )
 	if success then
-		local credentials = PxAPI.login( userInfo )
-		return true, credentials
+		LrHttp.get( "http://500px.com/logout" )
+
+		-- get a request token
+		local response, headers = call_it( "POST", REQUEST_TOKEN_URL, { oauth_callback = "oob" }, math.random(99999) )
+		if not response or not headers.status then
+			return false, { created = true }
+		end
+
+		local token = response:match( "oauth_token=([^&]+)" )
+		local token_secret = response:match( "oauth_token_secret=([^&]+)" )
+		if not token or not token_secret then
+			return false, { created = true }
+		end
+
+		-- get an access token_secret
+		local args = {
+			x_auth_mode = "client_auth",
+			x_auth_username = userInfo.username,
+			x_auth_password = userInfo.password,
+			oauth_token = token,
+			oauth_token_secret = token_secret,
+		}
+
+		local response, headers = call_it( "POST", ACCESS_TOKEN_URL, args, math.random(99999) )
+
+		if not response or not headers.status then
+			return false, { created = true }
+		end
+
+		local access_token = response:match( "oauth_token=([^&]+)" )
+		local access_token_secret = response:match( "oauth_token_secret=([^&]+)" )
+
+		if not access_token or not access_token_secret then
+			return false, { created = true }
+		end
+
+		return true, {
+			oauth_token = access_token,
+			oauth_token_secret = access_token_secret,
+		}
 	else
 		return false, obj
 	end
