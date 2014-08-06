@@ -663,13 +663,13 @@ function PxUser.register( propertyTable )
 			return
 		end
 
-		if not userinfo.email or not string.match( userinfo.email, "%w+@[%w.]+%w" ) then
-			LrDialogs.message( "You must provide an email address." )
+		if not userinfo.email or not string.match( userinfo.email, "^%w+@[%w.]+%w$" ) then
+			LrDialogs.message( "You must provide a valid email address." )
 			return
 		end
 
-		if not userinfo.username or string.len( userinfo.username ) == 0 then
-			LrDialogs.message( "You must choose a username." )
+		if not userinfo.username or not string.match( userinfo.username, "^[%w_-]+$" ) then
+			LrDialogs.message( "You must choose a username that contains alphanumeric characters, underscores, and dashes only." )
 			return
 		end
 
