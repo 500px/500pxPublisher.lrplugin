@@ -240,17 +240,15 @@ function PxAPI.deletePhoto( propertyTable, args )
 end
 
 function PxAPI.upload( args )
-	local url = "http://upload.500px.com/api/v1/upload"
+	local url = "http://media.500px.com/upload"
+
+	url = string.format("%s?upload_key=%s&photo_id=%s&consumer_key=%s&access_key=%s", url, args.upload_key, args.photo_id, CONSUMER_KEY, args.access_key)
 
 	local filePath = assert( args.file_path )
 	local fileName = LrPathUtils.leafName( filePath )
 	args.file_path = nil
 
 	local mimeChunks = {}
-	args.consumer_key = CONSUMER_KEY
-	for key, value in pairs( args ) do
-		mimeChunks[ #mimeChunks + 1 ] = { name = key, value = value }
-	end
 
 	mimeChunks[ #mimeChunks + 1 ] = {
 		name= "file",
@@ -262,7 +260,7 @@ function PxAPI.upload( args )
 	local response, headers = LrHttp.postMultipart( url, mimeChunks )
 
 	if not response or headers.status ~= 200 then
-		logger:trace( "Uplaod failed: " .. ( headers.status or "-1" ) )
+		logger:trace( "Upload failed: " .. ( headers.status or "-1" ) )
 		return false, {}
 	end
 	return true, {}

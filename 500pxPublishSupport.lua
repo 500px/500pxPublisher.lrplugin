@@ -43,7 +43,7 @@ end
 --[[ Called when the user creates a new publish service. Will create a published collection for each collection in the user's portfolio. ]]--
 function publishServiceProvider.didCreateNewPublishService( publishSettings, info )
 	publishSettings.LR_publishService = info.publishService
-	
+
 	if publishSettings.syncNow then
 		if publishSettings.syncCollectionsOnly then
 			PxUser.syncCollections( publishSettings )
@@ -118,7 +118,7 @@ function publishServiceProvider.deletePhotosFromPublishedCollection( publishSett
 	end )
 
 	for i, remoteId in ipairs( arrayOfPhotoIds ) do
-		
+
 		local photo_id, collection_id = string.match( arrayOfPhotoIds[i], "([^-]+)-([^-]+)" )
 		local success, obj
 
@@ -133,7 +133,7 @@ function publishServiceProvider.deletePhotosFromPublishedCollection( publishSett
 			success, obj = PxAPI.deletePhoto( publishSettings, { photo_id = tonumber( photo_id ) } )
 
 			if PluginInit then PluginInit.lock() end
-			LrApplication:activeCatalog():withWriteAccessDo( "delete", function()	
+			LrApplication:activeCatalog():withWriteAccessDo( "delete", function()
 				for _, publishedCollection in ipairs( publishService:getChildCollections() ) do
 					for _, photo in ipairs( publishedCollection:getPhotos() ) do
 						if photo:getPropertyForPlugin( _PLUGIN, "photoId" ) == photo_id then
@@ -299,7 +299,7 @@ end
 
 function publishServiceProvider.getCommentsFromPublishedCollection( publishSettings, arrayOfPhotoInfo, commentCallback )
 	for i, photoInfo in ipairs( arrayOfPhotoInfo ) do
-		local photoId 
+		local photoId
 		LrApplication:activeCatalog():withReadAccessDo( function()
 			photoId = photoInfo.photo:getPropertyForPlugin( _PLUGIN, "photoId" )
 		end )
@@ -335,7 +335,7 @@ publishServiceProvider.titleForPhotoRating = "Rating"
 function publishServiceProvider.getRatingsFromPublishedCollection( publishSettings, arrayOfPhotoInfo, ratingCallback )
 	logger:trace("getRatingsFromPublishedCollection")
 	for i, photoInfo in ipairs( arrayOfPhotoInfo ) do
-		local photoId 
+		local photoId
 		LrApplication:activeCatalog():withReadAccessDo( function()
 			photoId = photoInfo.photo:getPropertyForPlugin( _PLUGIN, "photoId" )
 		end )
@@ -350,7 +350,7 @@ function publishServiceProvider.getRatingsFromPublishedCollection( publishSettin
 				photoInfo.photo:setPropertyForPlugin( _PLUGIN, "votes", tostring( obj.photo.votes_count ) )
 			end )
 			if PluginInit then PluginInit.unlock() end
-			
+
 			ratingCallback { publishedPhoto = photoInfo, rating = rating }
 		else
 			photoInfo.photo:setPropertyForPlugin( _PLUGIN, "photoId", nil )
@@ -387,4 +387,3 @@ function publishServiceProvider.addCommentToPublishedPhoto( publishSettings, rem
 end
 
 publishSupport = publishServiceProvider
-

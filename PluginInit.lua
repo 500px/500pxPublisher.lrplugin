@@ -33,7 +33,7 @@ function PluginInit.forceNewCollections()
 		for _, publishService in ipairs( catalog:getPublishServices( _PLUGIN.id ) ) do
 			local allPhotosCollection
 			local profileCollection
-			
+
 			catalog:withPrivateWriteAccessDo( "New Collections", function()
 				for _, collection in ipairs( publishService:getChildCollections() ) do
 					if collection:getName() == "Library" or collection:getName() == "Organizer" then
@@ -41,8 +41,8 @@ function PluginInit.forceNewCollections()
 						collection:setCollectionSettings( { toCummunity = false } )
 						allPhotosCollection = collection
 					end
-				end                                                    
-				
+				end
+
 				profileCollection = publishService:createPublishedCollection( "Public Profile", nil, false )
 				if profileCollection then
 					profileCollection:setCollectionSettings( { toCummunity = true } )
