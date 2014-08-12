@@ -688,7 +688,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 
 			if not photoInfo.id and not (propertyTable.isUserAwesome or propertyTable.isUserPlus) and uploadLimit <= 0 then
 				logger:trace( "Upload limit reached." .. tostring(uploadLimit) )
-				rendition:uploadFailed( "You have reached your weekly upload limit after 10 uploads on a basic account."  .. uploadLimit)
+				rendition:uploadFailed( "You have reached your weekly upload limit after 20 uploads on a basic account."  .. uploadLimit)
 				photoInfo.failed = true
 			else
 				photoid = photoInfo.id
