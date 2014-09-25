@@ -54,12 +54,12 @@ function publishServiceProvider.didCreateNewPublishService( publishSettings, inf
 		info.publishService.catalog:withWriteAccessDo( "", function()
 			for _, collection in ipairs( info.publishService:getChildCollections() ) do
 				collection:setCollectionSettings( { toCommunity = false } )
-				collection:setRemoteUrl( "http://500px.com/organizer" )
+				collection:setRemoteUrl( "https://500px.com/organizer" )
 			end
 
 			local collection = info.publishService:createPublishedCollection( "Public Profile", nil, true )
 			collection:setCollectionSettings( { toCommunity = true } )
-			collection:setRemoteUrl( "http://500px.com/" .. publishSettings.username )
+			collection:setRemoteUrl( "https://500px.com/" .. publishSettings.username )
 	end)
 	end
 end

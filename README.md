@@ -2,17 +2,17 @@
 
 Get the 500px Publisher for effortless portfolio management. With features like two-way sync, ability to read and write comments, view all your stats  and more. Now you will have more time for shooting.
 
-To try 500px Publisher for, checkout http://500px.com/lightroom
+To try 500px Publisher for Adobe Photoshop Lightroom®, checkout https://500px.com/lightroom
 
 
 
 ### QUICK START
 1. Clone the repo: git clone git://github.com/500px/500pxPublisher.lrplugin
-2. [Register Your Application](http://500px.com/settings/applications) and Edit variables **CONSUMER\_KEY**, **CONSUMER\_SECRET** with your app's keys and **SALT** variable with some random data in **500pxAPI.lua**
+2. [Register Your Application](https://500px.com/settings/applications) and Edit variables **CONSUMER\_KEY**, **CONSUMER\_SECRET** with your app's keys and **SALT** variable with some random data in **500pxAPI.lua**
 3. Copy **500pxPublisher.lrplugin** directory into Lightroom plugins
 or Add the plugin thought *Lightroom Plug-in Maganger*
 
-_(You can refer to User Guide at http://http://500px.com/lightroom)_
+_(You can refer to User Guide at https://500px.com/lightroom)_
 
 
 ### CONTRIBUTE

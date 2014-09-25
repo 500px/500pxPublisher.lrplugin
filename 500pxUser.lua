@@ -283,9 +283,9 @@ function PxUser.sync( propertyTable )
 				-- always update remote url and collection settings
 				local collectionUrl
 				if collectionObj.title == "Public Profile" then
-					collectionUrl = "http://500px.com/" .. propertyTable.username
+					collectionUrl = "https://500px.com/" .. propertyTable.username
 				elseif collectionObj.title == "Library" or collectionObj.title == "Organizer" then
-					collectionUrl = "http://500px.com/organizer"
+					collectionUrl = "https://500px.com/organizer"
 					collectionSettings.toCommunity = false
 				else
 					if collectionObj.kind == "profile" then
@@ -312,7 +312,7 @@ function PxUser.sync( propertyTable )
 					publishService.catalog:withWriteAccessDo( "sync.sync", function()
 						if photoInfo then
 							photos[ photoInfo.photo ] = true
-							collection:addPhotoByRemoteId( photoInfo.photo, string.format("%i-%s", photoObj.id, tostring( collectionObj.id ) ), string.format( "http://500px.com/photo/%i", photoObj.id ), not photoInfo.edited )
+							collection:addPhotoByRemoteId( photoInfo.photo, string.format("%i-%s", photoObj.id, tostring( collectionObj.id ) ), string.format( "https://500px.com/photo/%i", photoObj.id ), not photoInfo.edited )
 							progressScope:setPortionComplete( i / ( nInCollections + nPhotos ) )
 						end
 					end)
@@ -355,7 +355,7 @@ function PxUser.sync( propertyTable )
 		publishService.catalog:withWriteAccessDo( "sync.defaults", function()
 			local profileCollection = publishService:createPublishedCollection( "Public Profile", nil, true )
 			profileCollection:setCollectionSettings( { toCommunity = true } )
-			profileCollection:setRemoteUrl( "http://500px.com/" .. propertyTable.username )
+			profileCollection:setRemoteUrl( "https://500px.com/" .. propertyTable.username )
 
 			for _, collection in ipairs( publishService:getChildCollections() ) do
 				if collection:getName() == "Profile" or collection:getName() == "Library" or collection:getName() == "Organizer" then
@@ -459,9 +459,9 @@ function PxUser.syncCollections( propertyTable )
 				-- always update remote url and collection settings
 				local collectionUrl
 				if collectionObj.title == "Public Profile" then
-					collectionUrl = "http://500px.com/" .. propertyTable.username
+					collectionUrl = "https://500px.com/" .. propertyTable.username
 				elseif collectionObj.title == "Library" then
-					collectionUrl = "http://500px.com/organizer"
+					collectionUrl = "https://500px.com/organizer"
 				else
 					collectionUrl = PxAPI.makeCollectionUrl( propertyTable.username, collectionObj.path )
 					--update collection settings (ie: path)
@@ -482,7 +482,7 @@ function PxUser.syncCollections( propertyTable )
 		publishService.catalog:withWriteAccessDo( "sync.defaults", function()
 			local profileCollection = publishService:createPublishedCollection( "Public Profile", nil, true )
 			profileCollection:setCollectionSettings( { toCommunity = true } )
-			profileCollection:setRemoteUrl( "http://500px.com/" .. propertyTable.username )
+			profileCollection:setRemoteUrl( "https://500px.com/" .. propertyTable.username )
 
 			for _, collection in ipairs( publishService:getChildCollections() ) do
 				if collection:getName() == "Profile" or collection:getName() == "Library" then
@@ -629,7 +629,7 @@ function PxUser.register( propertyTable )
 								title = "Terms of Service",
 								font = "<system/bold>",
 								text_color = LrColor( "blue" ),
-								mouse_down = function() LrHttp.openUrlInBrowser( "http://500px.com/terms" ) end
+								mouse_down = function() LrHttp.openUrlInBrowser( "https://500px.com/terms" ) end
 							},
 						},
 					},
@@ -643,7 +643,7 @@ function PxUser.register( propertyTable )
 			accessoryView = f:row {
 				f:push_button {
 					title = "Learn More...",
-					action = function()  LrHttp.openUrlInBrowser( "http://500px.com/about" ) end
+					action = function()  LrHttp.openUrlInBrowser( "https://500px.com/about" ) end
 				}
 			}
 		} )

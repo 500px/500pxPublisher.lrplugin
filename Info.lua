@@ -3,7 +3,7 @@ return {
 	LrSdkMinimumVersion = 3.0,
 	LrToolkitIdentifier = "com.500px.publisher",
 	LrPluginName = "500px",
-	LrPluginInfoUrl = "http://500px.com/lightroom",
+	LrPluginInfoUrl = "https://500px.com/lightroom",
 	LrInitPlugin = "PluginInit.lua",
 	LrExportServiceProvider = {
 		title = "500px",

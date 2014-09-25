@@ -182,7 +182,7 @@ function exportServiceProvider.sectionsForTopOfDialog( f, propertyTable )
 					width = 110,
 					enabled = LrBinding.negativeOfKey( "isUserAwesome" ) or LrBinding.negativeOfKey( "isUserPlus" ),
 					visible = bind "validAccount",
-					action = function() LrHttp.openUrlInBrowser( "http://500px.com/upgrade" ) end
+					action = function() LrHttp.openUrlInBrowser( "https://500px.com/upgrade" ) end
 				},
 				f:push_button {
 					title = bind "loginButtonTitle",
@@ -530,8 +530,8 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 		publishedCollectionInfo.isProfileCollection = publishedCollectionInfo.name == "Profile" or publishedCollectionInfo.name == "Public Profile"
 		publishedCollectionInfo.isAllPhotosCollection = publishedCollectionInfo.name == "Library" or publishedCollectionInfo.name == "Organizer"
 		publishedCollectionInfo.isDefaultCollection = publishedCollectionInfo.isProfileCollection or publishedCollectionInfo.isAllPhotosCollection
-		publishedCollectionInfo.remoteUrl = ( publishedCollectionInfo.isProfileCollection and string.format( "http://500px.com/%s", propertyTable.username ) ) or
-						    ( publishedCollectionInfo.isAllPhotosCollection and "http://500px.com/organizer" ) or
+		publishedCollectionInfo.remoteUrl = ( publishedCollectionInfo.isProfileCollection and string.format( "https://500px.com/%s", propertyTable.username ) ) or
+						    ( publishedCollectionInfo.isAllPhotosCollection and "https://500px.com/organizer" ) or
 						    PxAPI.makeCollectionUrl( propertyTable.username, collectionInfoSummary.collectionSettings.path )
 		publishedCollectionInfo.path = collectionInfoSummary.collectionSettings.path
 		publishedCollectionInfo.toCommunity = publishedCollectionInfo.isProfileCollection or collectionInfoSummary.collectionSettings.toCommunity
@@ -620,7 +620,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 			local messageInfo = "You have to upgrade to create sets and portfolio sets."
 			local action = LrDialogs.confirm( message, messageInfo, "Become Awesome!" )
 			if action == "ok" then
-				LrHttp.openUrlInBrowser( "http://500px.com/upgrade" )
+				LrHttp.openUrlInBrowser( "https://500px.com/upgrade" )
 			end
 			return
 		else
@@ -785,28 +785,28 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 						photo:setPropertyForPlugin( _PLUGIN, "photoId", tostring( photoInfo.id ) )
 
 						rendition:recordPublishedPhotoId( string.format( "%s-%s", photoInfo.id, publishedCollectionInfo.remoteId ) )
-						rendition:recordPublishedPhotoUrl( string.format( "http://500px.com/photo/%s", photoInfo.id ) )
+						rendition:recordPublishedPhotoUrl( string.format( "https://500px.com/photo/%s", photoInfo.id ) )
 
 						photo:setPropertyForPlugin( _PLUGIN, "publishedUUID", photo:getRawMetadata( "uuid" ) )
 
 						-- this is stupid, but has to be here for LR4 and keywords. Photos all be marked as modified when you change you metadata in the upload dialog
-						exportContext.publishedCollection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, publishedCollectionInfo.remoteId ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
+						exportContext.publishedCollection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, publishedCollectionInfo.remoteId ), string.format( "https://500px.com/photo/%s", photoInfo.id ), true )
 
 						-- mark all photo is published in all collections it belongs to
 						if photoInfo.collections then
 							for _, collection in ipairs( photoInfo.collections ) do
-								collection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, collection:getRemoteId() ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
+								collection:addPhotoByRemoteId( photo, string.format( "%s-%s", photoInfo.id, collection:getRemoteId() ), string.format( "https://500px.com/photo/%s", photoInfo.id ), true )
 							end
 						end
 
 						-- add photo to "Library"
 						if not publishedCollectionInfo.isAllPhotosCollection and allPhotosCollection then
-							allPhotosCollection:addPhotoByRemoteId( photo, string.format( "%s-nil", photoInfo.id ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
+							allPhotosCollection:addPhotoByRemoteId( photo, string.format( "%s-nil", photoInfo.id ), string.format( "https://500px.com/photo/%s", photoInfo.id ), true )
 						end
 
 						-- add photo to "Profile"
 						if photoInfo.privacy == 0 and not publishedCollectionInfo.isProfileCollection then
-							profileCollection:addPhotoByRemoteId( photo, string.format( "%s-profile", photoInfo.id ), string.format( "http://500px.com/photo/%s", photoInfo.id ), true )
+							profileCollection:addPhotoByRemoteId( photo, string.format( "%s-profile", photoInfo.id ), string.format( "https://500px.com/photo/%s", photoInfo.id ), true )
 						end
 					end )
 					if PluginInit then PluginInit.unlock() end
