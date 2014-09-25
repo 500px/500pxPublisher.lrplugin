@@ -37,7 +37,7 @@ local COCOA_TIMESHIFT = 978307200
 local REQUEST_TOKEN_URL = "https://api.500px.com/v1/oauth/request_token" -- https://
 local AUTHORIZE_TOKEN_URL = "https://api.500px.com/v1/oauth/authorize" -- https://
 local ACCESS_TOKEN_URL = "https://api.500px.com/v1/oauth/access_token" -- https://
-local CALLBACK_URL = "http://500px.com/apps/lightroom"
+local CALLBACK_URL = "https://500px.com/apps/lightroom"
 local BASE_URL = "https://api.500px.com/v1/" -- https://
 
 --[[ Some Handy Helper Functions ]]--
@@ -191,7 +191,7 @@ end
 
 function PxAPI.makeCollectionUrl( domain, path )
 	if domain and path then
-		return "http://500px.com/" .. domain .. "/sets/" .. path
+		return "https://500px.com/" .. domain .. "/sets/" .. path
 	end
 end
 
@@ -240,7 +240,7 @@ function PxAPI.deletePhoto( propertyTable, args )
 end
 
 function PxAPI.upload( args )
-	local url = "http://media.500px.com/upload"
+	local url = "https://media.500px.com/upload"
 
 	url = string.format("%s?upload_key=%s&photo_id=%s&consumer_key=%s&access_key=%s", url, args.upload_key, args.photo_id, CONSUMER_KEY, args.access_key)
 
@@ -282,7 +282,7 @@ function PxAPI.postComment( propertyTable, args )
 end
 
 function PxAPI.getUser( propertyTable, args )
-	LrHttp.get( "http://500px.com/logout" )
+	LrHttp.get( "https://500px.com/logout" )
 	return call_rest_method( propertyTable, "GET", "users", args )
 end
 
@@ -359,7 +359,7 @@ function PxAPI.setPhotoTags( propertyTable, args )
 end
 
 function PxAPI.login( context )
-	LrHttp.get( "http://500px.com/logout" )
+	LrHttp.get( "https://500px.com/logout" )
 
 	-- get a request token
 	local response, headers = call_it( "POST", REQUEST_TOKEN_URL, { oauth_callback = CALLBACK_URL }, math.random(99999) )
@@ -454,7 +454,7 @@ function PxAPI.register( userInfo )
 		email = userInfo.email,
 	} )
 	if success then
-		LrHttp.get( "http://500px.com/logout" )
+		LrHttp.get( "https://500px.com/logout" )
 
 		-- get a request token
 		local response, headers = call_it( "POST", REQUEST_TOKEN_URL, { oauth_callback = "oob" }, math.random(99999) )

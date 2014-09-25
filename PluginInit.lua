@@ -59,7 +59,7 @@ function PluginInit.forceNewCollections()
 							local photo = publishedPhoto:getPhoto()
 							catalog:withReadAccessDo( function()
 								photoId = photo:getPropertyForPlugin( _PLUGIN, "photoId" )
-								photoUrl = string.format( "http://500px.com/photo/%s", photoId )
+								photoUrl = string.format( "https://500px.com/photo/%s", photoId )
 							end )
 
 							if isAllPhotos then
