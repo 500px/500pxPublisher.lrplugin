@@ -282,7 +282,7 @@ function PxAPI.postComment( propertyTable, args )
 end
 
 function PxAPI.getUser( propertyTable, args )
-	LrHttp.get( "https://500px.com/logout" )
+	call_it( "POST", "https://500px.com/logout", { _method = "delete" } )
 	return call_rest_method( propertyTable, "GET", "users", args )
 end
 
@@ -359,7 +359,7 @@ function PxAPI.setPhotoTags( propertyTable, args )
 end
 
 function PxAPI.login( context )
-	LrHttp.get( "https://500px.com/logout" )
+	call_it( "POST", "https://500px.com/logout", { _method = "delete" } )
 
 	-- get a request token
 	local response, headers = call_it( "POST", REQUEST_TOKEN_URL, { oauth_callback = CALLBACK_URL }, math.random(99999) )
@@ -454,7 +454,7 @@ function PxAPI.register( userInfo )
 		email = userInfo.email,
 	} )
 	if success then
-		LrHttp.get( "https://500px.com/logout" )
+		call_it( "POST", "https://500px.com/logout", { _method = "delete" } )
 
 		-- get a request token
 		local response, headers = call_it( "POST", REQUEST_TOKEN_URL, { oauth_callback = "oob" }, math.random(99999) )
