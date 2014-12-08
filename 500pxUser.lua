@@ -127,7 +127,11 @@ function PxUser.sync( propertyTable )
 			image_size = 5,
 		}
 
-		local dir = LrPathUtils.child(LrPathUtils.child( LrPathUtils.getStandardFilePath( "pictures" ), "500px" ), propertyTable.username )
+		local dir = propertyTable.LR_export_destinationPathPrefix
+		if propertyTable.LR_export_useSubfolder then
+			dir = LrPathUtils.child(dir, propertyTable.LR_export_destinationPathSuffix)
+		end
+
 		LrFileUtils.createAllDirectories( dir )
 
 		-- collect photos for "Profile" and "Library" collections

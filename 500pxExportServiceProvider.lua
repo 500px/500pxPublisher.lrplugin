@@ -106,7 +106,7 @@ exportServiceProvider.exportPresetFields = {
 }
 
 -- photos are always rendered to a temporary location and are deleted when the export is complete
-exportServiceProvider.hideSections = { "video", "exportLocation", "fileNaming" }
+exportServiceProvider.hideSections = { "video", "fileNaming" }
 
 exportServiceProvider.allowFileFormats = { "JPEG" }
 
@@ -248,19 +248,6 @@ function exportServiceProvider.sectionsForTopOfDialog( f, propertyTable )
 						visible = LrBinding.keyIsNotNil( "LR_publishService" ),
 					},
 				},
-			},
-			f:static_text {
-				width = 100,
-				fill_horizontal = 1,
-				font = "<system/small/bold>",
-				title = bind {
-					key = "username",
-					transform = function( value, fromModel )
-						if not value then
-							value = ""
-						end
-						return "Your photos will be downloaded to " .. LrPathUtils.child(LrPathUtils.child( LrPathUtils.getStandardFilePath( "pictures" ), "500px" ), value )
-					end },
 			},
 		} )
 	else
