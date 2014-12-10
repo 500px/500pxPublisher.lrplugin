@@ -1,5 +1,5 @@
 --[[ Some Handy Constants ]]--
-local CONSUMER_KEY = "";
+local CONSUMER_KEY = ""
 local CONSUMER_SECRET = ""
 local SALT = ""
 
@@ -18,6 +18,7 @@ local LrView = import "LrView"
 local bind = LrView.bind
 
 require "sha1"
+require 'Info'
 
 local JSON = require "JSON"
 function JSON:onDecodeError( message, text, char )
@@ -135,9 +136,9 @@ local function call_it( method, url, params, rid )
 	end
 
 	if method == "POST" then
-		return LrHttp.post( url, query_string, { auth_header, { field = "Content-Type", value = "application/x-www-form-urlencoded" }, { field = "User-Agent", value = "500px Plugin 1.0" }, { field = "Cookie", value = "GARBAGE" } } )
+		return LrHttp.post( url, query_string, { auth_header, { field = "Content-Type", value = "application/x-www-form-urlencoded" }, { field = "User-Agent", value = "500px Plugin " .. displayVersion }, { field = "Cookie", value = "GARBAGE" } } )
 	else
-		return LrHttp.get( url .. "?" .. query_string, { auth_header, { field = "User-Agent", value = "500px Plugin 0.1.5" } } )
+		return LrHttp.get( url .. "?" .. query_string, { auth_header, { field = "User-Agent", value = "500px Plugin " .. displayVersion } } )
 	end
 end
 

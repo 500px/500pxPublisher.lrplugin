@@ -1,3 +1,8 @@
+local majorVersion = 1
+local minorVersion = 7
+local revisionVersion = 1
+displayVersion = majorVersion ..".".. minorVersion ..".".. revisionVersion
+
 return {
 	LrSdkVersion = 4.0,
 	LrSdkMinimumVersion = 3.0,
@@ -12,6 +17,6 @@ return {
 	},
 	LrMetadataTagsetFactory = "500pxTagset.lua",
 	LrMetadataProvider = "500pxMetadataDefinition.lua",
-	VERSION = { major=1, minor=7, revision=1 },
+	VERSION = { major = majorVersion, minor = minorVersion, revision = revisionVersion },
 	URLHandler = "500pxURLHandler.lua",
 }
