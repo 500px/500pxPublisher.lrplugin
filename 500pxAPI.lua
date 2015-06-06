@@ -39,6 +39,7 @@ local AUTHORIZE_TOKEN_URL = "https://api.500px.com/v1/oauth/authorize" -- https:
 local ACCESS_TOKEN_URL = "https://api.500px.com/v1/oauth/access_token" -- https://
 local CALLBACK_URL = "https://500px.com/apps/lightroom"
 local BASE_URL = "https://api.500px.com/v1/" -- https://
+local VERSIONCHECK_URL = "https://dlcdn.500px.org/downloads/lightroom/versions.txt"
 
 --[[ Some Handy Helper Functions ]]--
 local function oauth_encode( value )
@@ -496,5 +497,60 @@ function PxAPI.register( userInfo )
 		}
 	else
 		return false, obj
+	end
+end
+
+function compareVersionPart( a, b, part )
+	return a[part] - b[part]
+end
+
+function PxAPI.compareVersions( a, b )
+	local check = compareVersionPart( a, b, "major" )
+	if check ~= 0 then
+		return check
+	end
+
+	check = compareVersionPart( a, b, "minor" )
+	if check ~= 0 then
+		return check
+	end
+
+	return compareVersionPart( a, b, "revision" )
+end
+
+function PxAPI.getLatestVersion()
+	local version = {}
+	local result = LrHttp.get( VERSIONCHECK_URL )
+
+	if result then
+		-- Assumes the first version is the latest version
+		local space = result:find( " " )
+		if space == nil then
+			return nil
+		end
+		versionStr = result:sub( 1, space - 1 )
+
+		local start = 1
+		local dot = versionStr:find( ".", start, true )
+		if dot == nil then
+			return nil
+		end
+
+		version["major"] = tonumber( versionStr:sub( start, dot - 1 ) )
+		start = dot + 1
+
+		dot = versionStr:find( ".", start, true )
+		if dot == nil then
+			return nil
+		end
+
+		version["minor"] = tonumber( versionStr:sub( start, dot -1 ) )
+		start = dot + 1
+
+		version["revision"] = tonumber( versionStr:sub( start ) )
+
+		return version
+	else
+		return nil
 	end
 end

@@ -1,5 +1,5 @@
 if PluginInit then
-	--PluginInit.checkForUpdates()
+	PluginInit.checkForUpdates()
 	PluginInit.forceNewCollections()
 end
 

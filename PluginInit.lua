@@ -5,25 +5,80 @@ local LrDialogs = import "LrDialogs"
 local LrHttp = import "LrHttp"
 local LrFunctionContext = import "LrFunctionContext"
 local LrTasks = import "LrTasks"
+local prefs = import 'LrPrefs'.prefsForPlugin()
+local LrView = import "LrView"
+local LrBinding = import "LrBinding"
+local bind = LrView.bind
 
 local logger = import "LrLogger"("500pxPublisher")
 logger:enable("logfile")
 
-local lastCheck = 0
+require "500pxAPI"
 
--- Deprecated
--- function PluginInit.checkForUpdates()
--- 	LrFunctionContext.postAsyncTaskWithContext( "update check",  function(context)
--- 		local time = LrDate.currentTime()
--- 		if time - lastCheck >= 86400 then
--- 			local response, headers = LrHttp.get( "https://api.500px.com/v1/version/lightroom" )
--- 			if headers and headers.status == 200 then
--- 				lastCheck = time
--- 				Plugin.outOfDate = (tostring( string.gsub( response, "%s+", "" ) )  == "0.1.8.0" )
--- 			end
--- 		end
--- 	end )
--- end
+function formatVersion( v )
+	return v["major"] .. "." .. v["minor"] .. "." .. v["revision"]
+end
+
+function PluginInit.checkForUpdates()
+	LrFunctionContext.postAsyncTaskWithContext( "Update Check", function(context)
+		LrDialogs.attachErrorDialogToFunctionContext(context)
+
+		local lastCheck = prefs.lastUpdateCheck
+		if not lastCheck then
+			lastCheck = 0
+		end
+
+		local time = LrDate.currentTime()
+		if time - lastCheck < 86400 then
+			return
+		end
+
+		prefs.lastUpdateCheck = time
+
+		local info = require "Info"
+		local currentVersion = info["VERSION"]
+		local latestVersion = PxAPI.getLatestVersion()
+
+		-- The user has previously seen and ignored this version
+		if formatVersion(latestVersion) == prefs.seenVersion then
+			return
+		end
+
+		if latestVersion and PxAPI.compareVersions( latestVersion, currentVersion ) > 0 then
+			local f = LrView.osFactory()
+			local props = LrBinding.makePropertyTable( context )
+			props.dontcheck = false
+
+			local result = LrDialogs.presentModalDialog( {
+				title = "500px Plugin Update Available",
+				resizable = false,
+				actionVerb = "Download Now",
+				cancelVerb = "Not Now",
+				contents = f:view {
+					spacing = f:control_spacing(),
+					bind_to_object = props,
+					f:static_text {
+						title = "There is an update available for the 500px plugin. You should update to receive the latest features and fixes.",
+						width = 400,
+						height_in_lines = 2,
+					},
+					f:checkbox {
+						title = "Don't ask again for this version",
+						value = bind "dontcheck",
+					},
+				}
+			} )
+
+			if props.dontcheck then
+				prefs.seenVersion = formatVersion(latestVersion)
+			end
+
+			if result == "ok" then
+				LrHttp.openUrlInBrowser( "https://500px.com/apps/lightroom" )
+			end
+		end
+	end )
+end
 
 function PluginInit.forceNewCollections()
 	local LrApplication = import "LrApplication"
@@ -91,5 +146,3 @@ end
 function PluginInit.unlock( )
 	locked = false
 end
-
-PluginInit.outOfDate = false
