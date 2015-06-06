@@ -103,6 +103,7 @@ exportServiceProvider.exportPresetFields = {
 	{ key = "validAccount", default = false },
 	{ key = "license_type", default = 0 },
 	{ key = "syncNow", default = true },
+	{ key = "onlyFresh", default = nil },
 }
 
 -- photos are always rendered to a temporary location and are deleted when the export is complete
@@ -146,8 +147,13 @@ function exportServiceProvider.startDialog( propertyTable )
 		propertyTable.username = nil
 		propertyTable.validAccount = false
 		propertyTable.userId = nil
+		propertyTable.onlyFresh = true
 	else
 		propertyTable.collectionId = nil
+	end
+
+	if propertyTable.onlyFresh == nil and propertyTable.LR_isExportForPublish then
+		propertyTable.onlyFresh = true
 	end
 
 	setPresets( propertyTable )
@@ -210,6 +216,19 @@ function exportServiceProvider.sectionsForTopOfDialog( f, propertyTable )
 		},
 	}
 	if propertyTable.LR_isExportForPublish then
+		table.insert( sections, {
+			title = "500px Fresh",
+			f:static_text {
+				width = 100,
+				fill_horizontal = 1,
+				title = "Photos that are uploaded with a title, category and at least three tags will go into the fresh feed where other photographers can easily find them. Use Lightroom's Metadata sidebar to set these.",
+				height_in_lines = 2,
+			},
+			f:checkbox {
+				title = "Only publish photos that will go to the Fresh feed",
+				value = bind "onlyFresh",
+			}
+		} )
 		table.insert( sections, {
 			title = "Syncing With 500px",
 			f:static_text {
@@ -419,6 +438,7 @@ end
 
 function getPhotoInfo( exportContext )
 	local photos = {}
+	local freshSkipped = 0
 	local propertyTable = exportContext.propertyTable
 
 	local keywords = {}
@@ -441,58 +461,78 @@ function getPhotoInfo( exportContext )
 			photoInfo.lens = photo:getFormattedMetadata( "lens" )
 			photo:getRawMetadata( "keywords" )
 		end )
-		photoInfo.success, photoInfo.path = rendition:waitForRender()
 
-		-- check uuid to see if it's a virtual copy that hasn't been published
-		if not propertyTable.LR_isExportForPublish or photoInfo.publishedUUID ~= photo:getRawMetadata( "uuid" ) then
-			photoInfo.id = nil
-			photoInfo.privacy = 1
+		photoInfo.isFresh = true
+
+		if photoInfo.title == "" or photoInfo.title == nil then
+			photoInfo.isFresh = false
 		end
 
-		-- check if photo exists on website
-		if photoInfo.id then
-			local success, obj = PxAPI.getPhoto( propertyTable, { photo_id = photoInfo.id } )
-			if not success and obj.status == 404 then
-				-- photo did not belong to user but has been deleted
+		if photoInfo.category == "" or photoInfo.category == nil then
+			photoInfo.isFresh = false
+		end
+
+		local result, count = photoInfo.tags:gsub( ",", "-" )
+		if count <= 2 then
+			photoInfo.isFresh = false
+		end
+
+		if propertyTable.onlyFresh and not photoInfo.isFresh then
+			freshSkipped = freshSkipped + 1
+		else
+			photoInfo.success, photoInfo.path = rendition:waitForRender()
+
+			-- check uuid to see if it's a virtual copy that hasn't been published
+			if not propertyTable.LR_isExportForPublish or photoInfo.publishedUUID ~= photo:getRawMetadata( "uuid" ) then
 				photoInfo.id = nil
 				photoInfo.privacy = 1
-			elseif not success then
-				rendition:uploadFailed( "Could not connect to 500px." )
-				photoInfo.failed = true
-			elseif obj.photo.user.id ~= propertyTable.userId then
-				rendition:uploadFailed( "Another user has already published this photo." )
-				photoInfo.failed = true
-			elseif obj.photo.status == 9 then
-				logger:trace("Photo was deleted, upload it again as new")
-				photoInfo.status = 9
-			elseif obj.photo.status ~= 1 then
-				-- photo has been deleted, or was never uploaded
-				photoInfo.photo_id = nil
-				photoInfo.privacy = 1
-			else
-				photoInfo.privacy = booleanToNumber( obj.photo.privacy )
 			end
+
+			-- check if photo exists on website
+			if photoInfo.id then
+				local success, obj = PxAPI.getPhoto( propertyTable, { photo_id = photoInfo.id } )
+				if not success and obj.status == 404 then
+					-- photo did not belong to user but has been deleted
+					photoInfo.id = nil
+					photoInfo.privacy = 1
+				elseif not success then
+					rendition:uploadFailed( "Could not connect to 500px." )
+					photoInfo.failed = true
+				elseif obj.photo.user.id ~= propertyTable.userId then
+					rendition:uploadFailed( "Another user has already published this photo." )
+					photoInfo.failed = true
+				elseif obj.photo.status == 9 then
+					logger:trace("Photo was deleted, upload it again as new")
+					photoInfo.status = 9
+				elseif obj.photo.status ~= 1 then
+					-- photo has been deleted, or was never uploaded
+					photoInfo.photo_id = nil
+					photoInfo.privacy = 1
+				else
+					photoInfo.privacy = booleanToNumber( obj.photo.privacy )
+				end
+			end
+
+			if PluginInit then PluginInit.lock() end
+			-- logger:trace("write photo info")
+			photo.catalog:withWriteAccessDo( "write photo info", function()
+				photo:setPropertyForPlugin( _PLUGIN, "category", photoInfo.category )
+				photo:setRawMetadata( "title", photoInfo.title )
+				photo:setRawMetadata( "caption", photoInfo.description )
+				photo:setPropertyForPlugin( _PLUGIN, "nsfw", booleanToNumber( photoInfo.nsfw ) )
+				photo:setPropertyForPlugin( _PLUGIN, "license_type", photoInfo.license_type )
+
+				if photoInfo.tags then
+					photo:setPropertyForPlugin( _PLUGIN, "previous_tags", photoInfo.tags )
+				end
+			end )
+			if PluginInit then PluginInit.unlock() end
+
+			table.insert( photos, { ["rendition"] = rendition, ["photoInfo"] = photoInfo } )
 		end
-
-		if PluginInit then PluginInit.lock() end
-		-- logger:trace("write photo info")
-		photo.catalog:withWriteAccessDo( "write photo info", function()
-			photo:setPropertyForPlugin( _PLUGIN, "category", photoInfo.category )
-			photo:setRawMetadata( "title", photoInfo.title )
-			photo:setRawMetadata( "caption", photoInfo.description )
-			photo:setPropertyForPlugin( _PLUGIN, "nsfw", booleanToNumber( photoInfo.nsfw ) )
-			photo:setPropertyForPlugin( _PLUGIN, "license_type", photoInfo.license_type )
-
-			if photoInfo.tags then
-				photo:setPropertyForPlugin( _PLUGIN, "previous_tags", photoInfo.tags )
-			end
-		end )
-		if PluginInit then PluginInit.unlock() end
-
-		table.insert( photos, { ["rendition"] = rendition, ["photoInfo"] = photoInfo } )
 	end
 
-	return photos
+	return photos, freshSkipped
 end
 
 function exportServiceProvider.processRenderedPhotos( functionContext, exportContext )
@@ -654,7 +694,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 		logger:trace( "ID: " .. publishedCollectionInfo.remoteId )
 	end
 
-	local photos = getPhotoInfo( exportContext )
+	local photos, freshSkipped = getPhotoInfo( exportContext )
 	local uploadLimit = propertyTable.uploadLimit or 0
 
 	logger:trace( "Upload limit: " .. tostring(uploadLimit) )
@@ -809,6 +849,12 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 	if isPublish then
 		exportSession:recordRemoteCollectionId( publishedCollectionInfo.remoteId )
 		exportSession:recordRemoteCollectionUrl( publishedCollectionInfo.remoteUrl )
+	end
+
+	if freshSkipped == 1 then
+		LrDialogs.message("Skipped photos", freshSkipped .. " photo was skipped because it doesn't have a title, category or three keywords.")
+	elseif freshSkipped > 1 then
+		LrDialogs.message("Skipped photos", freshSkipped .. " photos were skipped because they don't have a title, category or three keywords.")
 	end
 end
 
