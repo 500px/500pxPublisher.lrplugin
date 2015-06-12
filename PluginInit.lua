@@ -21,8 +21,6 @@ end
 
 function PluginInit.checkForUpdates()
 	LrFunctionContext.postAsyncTaskWithContext( "Update Check", function(context)
-		LrDialogs.attachErrorDialogToFunctionContext(context)
-
 		local lastCheck = prefs.lastUpdateCheck
 		if not lastCheck then
 			lastCheck = 0
