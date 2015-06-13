@@ -56,6 +56,14 @@ local function getCollectionsAndPhotos( publishService )
 	local collectionsById = {}
 	local collectionsByName = {}
 
+	-- Find any photo in the entire catalog that has a remote ID
+	local known = publishService.catalog:findPhotosWithProperty( _PLUGIN.id, "photoId" )
+	local props = publishService.catalog:batchGetPropertyForPlugin( known, _PLUGIN, { "photoId" } )
+
+	for photo, fields in pairs( props ) do
+		photos[ fields[ "photoId" ] ] = { photo = photo, edited = False }
+	end
+
 	for _, publishedCollection in ipairs( publishedCollections ) do
 		local publishedPhotos = publishedCollection:getPublishedPhotos()
 		local collection = {}
