@@ -104,10 +104,11 @@ exportServiceProvider.exportPresetFields = {
 	{ key = "license_type", default = 0 },
 	{ key = "syncNow", default = true },
 	{ key = "onlyFresh", default = nil },
+	{ key = "syncLocation", default = nil },
 }
 
--- photos are always rendered to a temporary location and are deleted when the export is complete
-exportServiceProvider.hideSections = { "video", "fileNaming" }
+--- photos are always rendered to a temporary location and are deleted when the export is complete
+exportServiceProvider.hideSections = { "video", "exportLocation", "fileNaming" }
 
 exportServiceProvider.allowFileFormats = { "JPEG" }
 
@@ -126,6 +127,10 @@ local function setPresets( propertyTable )
 		propertyTable.LR_size_resizeType = "longEdge"
 		propertyTable.LR_size_doConstrain = false
 		propertyTable.LR_removeLocationMetadata = false
+	else
+		if propertyTable.syncLocation == nil then
+			propertyTable.syncLocation = LrPathUtils.child(LrPathUtils.child( LrPathUtils.getStandardFilePath( "pictures" ), "500px" ), propertyTable.username )
+		end
 	end
 	propertyTable.syncCollectionsOnly = true
 end
@@ -148,6 +153,7 @@ function exportServiceProvider.startDialog( propertyTable )
 		propertyTable.validAccount = false
 		propertyTable.userId = nil
 		propertyTable.onlyFresh = true
+		propertyTable.syncLocation = nil
 	else
 		propertyTable.collectionId = nil
 	end
@@ -247,6 +253,39 @@ function exportServiceProvider.sectionsForTopOfDialog( f, propertyTable )
 				font = "<system/small/bold>",
 				title = "You can sync the previews of the photos by unchecking the checkbox above. Please note that depending on the size of your portfolio, this may take several hours.",
 				height_in_lines = 2,
+			},
+			f:row {
+				f:static_text {
+					width = 100,
+					fill_horizontal = 1,
+					font = "<system/small/bold>",
+					title = bind {
+						key = "syncLocation",
+						transform = function( value, fromModel )
+							return "Your photos will be downloaded to " .. value
+						end
+					},
+				},
+				f:push_button {
+					title = "Browse...",
+					action = function()
+						LrFunctionContext.callWithContext( "browseSyncLocation", function( context )
+							LrDialogs.attachErrorDialogToFunctionContext( context )
+							local paths = LrDialogs.runOpenPanel({
+								title = "Where to download?",
+								prompt = "Select",
+								canChooseFiles = false,
+								canChooseDirectories = true,
+								canCreateDirectories = true,
+								allowsMultipleSelection = false,
+								initialDirectory = propertyTable.syncLocation
+							})
+							if paths then
+								propertyTable.syncLocation = paths[1]
+							end
+						end )
+					end,
+				},
 			},
 			f:column {
 				place = "overlapping",
