@@ -792,7 +792,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 						end
 
 						-- add photo to "Profile"
-						if photoInfo.privacy == 0 and not publishedCollectionInfo.isProfileCollection then
+						if photoInfo.privacy == 0 and not publishedCollectionInfo.isProfileCollection and profileCollection then
 							profileCollection:addPhotoByRemoteId( photo, string.format( "%s-profile", photoInfo.id ), string.format( "https://500px.com/photo/%s", photoInfo.id ), true )
 						end
 					end )
