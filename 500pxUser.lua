@@ -132,7 +132,7 @@ function PxUser.sync( propertyTable )
 			sort = "created_at",
 			page = 1,
 			rpp = 50,
-			image_size = 5,
+			image_size = 2048,
 		}
 
 		local dir = propertyTable.syncLocation
