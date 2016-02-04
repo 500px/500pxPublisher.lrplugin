@@ -162,7 +162,7 @@ local function call_rest_method( propertyTable, method, path, args )
 		LrErrors.throwUserError( "Could not connect to 500px. Make sure you are connected to the internet and try again." )
 	end
 
-	if headers.status > 404 then
+	if headers.status >= 500 then
 		logger:trace("Api error. Response: " .. response)
 		LrErrors.throwUserError("Something went wrong, try again later.")
 	elseif headers.status > 401 then

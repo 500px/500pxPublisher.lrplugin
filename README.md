@@ -1,4 +1,4 @@
-#The 500px Publisher for Adobe Photoshop Lightroom®#
+# The 500px Publisher for Adobe Photoshop Lightroom®
 
 Get the 500px Publisher for effortless portfolio management. With features like two-way sync, ability to read and write comments, view all your stats  and more. Now you will have more time for shooting.
 
@@ -10,7 +10,7 @@ To try 500px Publisher for Adobe Photoshop Lightroom®, checkout https://500px.c
 1. Clone the repo: git clone git://github.com/500px/500pxPublisher.lrplugin
 2. [Register Your Application](https://500px.com/settings/applications) and Edit variables **CONSUMER\_KEY**, **CONSUMER\_SECRET** with your app's keys and **SALT** variable with some random data in **500pxAPI.lua**
 3. Copy **500pxPublisher.lrplugin** directory into Lightroom plugins
-or Add the plugin thought *Lightroom Plug-in Maganger*
+or Add the plugin through *Lightroom Plug-in Manager*
 
 _(You can refer to User Guide at https://500px.com/lightroom)_
 
@@ -22,8 +22,8 @@ Please pull request your changes, bug fixes. Thanks!
 
 ### HOW TO BUILD
 Download and install Lua Compiler http://www.lua.org/download.html
-We suggest to use Lua 5.1.4 for 32-bit architectures <a href="#get-a-32-bit-version-of-lua">(to get lua compiler for 32-bit architectures)</a>
-(Files compiled with 32bit compiler will perfectly work on 32bit and 64bit, while files compiled with 64bit compiler will only work on 64bit computers and not on 32bit arcitecture)
+We suggest you use Lua 5.1.4 for 32-bit architectures <a href="#get-a-32-bit-version-of-lua">(to get lua compiler for 32-bit architectures)</a>
+(Files compiled with 32bit compiler will work on 32bit and 64bit, while files compiled with 64bit compiler will only work on 64bit computers and not on 32bit architecture)
 
 
 
