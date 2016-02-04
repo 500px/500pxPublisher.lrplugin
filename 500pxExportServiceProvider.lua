@@ -537,12 +537,12 @@ function getPhotoInfo( exportContext )
 				elseif not success then
 					rendition:uploadFailed( "Could not connect to 500px." )
 					photoInfo.failed = true
-        elseif obj == "banned" then
-          rendition:uploadFailed( "Sorry, this user is inactive or banned. If you think this is a mistake — please contact us by email: help@500px.com." )
-          photoInfo.failed = true
-        elseif obj == "other" then
-          rendition:uploadFailed( "Another user has already published this photo." )
-          photoInfo.failed = true
+				elseif obj == "banned" then
+					rendition:uploadFailed( "Sorry, this user is inactive or banned. If you think this is a mistake — please contact us by email: help@500px.com." )
+					photoInfo.failed = true
+				elseif obj == "other" then
+					rendition:uploadFailed( "Another user has already published this photo." )
+					photoInfo.failed = true
 				elseif obj.photo.user.id ~= propertyTable.userId then
 					rendition:uploadFailed( "Another user has already published this photo." )
 					photoInfo.failed = true
