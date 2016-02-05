@@ -12,6 +12,6 @@ return {
 	},
 	LrMetadataTagsetFactory = "500pxTagset.lua",
 	LrMetadataProvider = "500pxMetadataDefinition.lua",
-	VERSION = { major=1, minor=10 },
+	VERSION = { major=1, minor=10, revision=0 },
 	URLHandler = "500pxURLHandler.lua",
 }

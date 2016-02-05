@@ -13,24 +13,18 @@ IFS='.'
 version=($version_raw)
 major=${version[0]}
 minor=${version[1]}
-#revision=${version[2]}
-#build=${version[3]}
+revision=${version[2]}
 IFS=$OIFS
 
 if [[ $1 == "major" ]]; then
     major=`expr $major + 1`
     minor='0'
-#    revision='0'
-#    build='0'
+    revision='0'
+elif [[ $1 == "revision" ]]; then
+    revision=`expr $revision + 1`
 else
     minor=`expr $minor + 1`
-#    revision='0'
-#    build='0'
-#elif [ $1 == "revision" ]; then
-#    revision=`expr $revision + 1`
-#    build='0'
-#else
-#    build=`expr $build + 1`
+    revision='0'
 fi
 
 mkdir -p $BUILD_DIR
@@ -51,8 +45,7 @@ echo -e "\t\tfile = \"500pxExportServiceProvider.lua\"," >> "$BUILD_DIR/Info.lua
 echo -e "\t}," >> "$BUILD_DIR/Info.lua"
 echo -e "\tLrMetadataTagsetFactory = \"500pxTagset.lua\"," >> "$BUILD_DIR/Info.lua"
 echo -e "\tLrMetadataProvider = \"500pxMetadataDefinition.lua\"," >> "$BUILD_DIR/Info.lua"
-#echo -e "\tVERSION = { major=$major, minor=$minor, revision=$revision, build=$build }," >> "$BUILD_DIR/Info.lua"
-echo -e "\tVERSION = { major=$major, minor=$minor }," >> "$BUILD_DIR/Info.lua"
+echo -e "\tVERSION = { major=$major, minor=$minor, revision=$revision }," >> "$BUILD_DIR/Info.lua"
 echo -e "}" >> "$BUILD_DIR/Info.lua"
 
 cp $SRC_DIR/* $BUILD_DIR
@@ -67,9 +60,7 @@ do
 done
 
 cd ..
-#zip -r "500pxPublisher v$major.$minor.$revision.$build.zip" 500pxPublisher.lrplugin
-zip -r "500pxPublisher_v$major.$minor.zip" 500pxPublisher.lrplugin
+zip -r "500pxPublisher v$major.$minor.$revision.zip" 500pxPublisher.lrplugin
 
 cd ..
-#echo "$major.$minor.$revision.$build" > $BUILD_NUMBER
-echo "$major.$minor" > $BUILD_NUMBER
+echo "$major.$minor.$revision" > $BUILD_NUMBER
