@@ -60,7 +60,7 @@ do
 done
 
 cd ..
-zip -r "500pxPublisher v$major.$minor.$revision.zip" 500pxPublisher.lrplugin
+zip -r "500pxPublisher_v$major.$minor.$revision.zip" 500pxPublisher.lrplugin
 
 cd ..
 echo "$major.$minor.$revision" > $BUILD_NUMBER
