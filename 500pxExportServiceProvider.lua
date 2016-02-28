@@ -227,7 +227,7 @@ function exportServiceProvider.sectionsForTopOfDialog( f, propertyTable )
 			f:static_text {
 				width = 100,
 				fill_horizontal = 1,
-				title = "Photos that are uploaded with a title, category and at least three tags will go into the fresh feed where other photographers can easily find them. Use Lightroom's Metadata sidebar to set these.",
+				title = "Photos that are uploaded with a title, category, and at least three tags will go into the Fresh feed where other photographers can easily find them. Use Lightroom's Metadata sidebar to set these.",
 				height_in_lines = 2,
 			},
 			f:checkbox {
@@ -323,32 +323,32 @@ function exportServiceProvider.sectionsForTopOfDialog( f, propertyTable )
 					items = {
 						{ value = 10, 	title="Abstract" },
 						{ value = 11, 	title="Animals" },
-						{ value = 5, 	title="Black and White" },
-						{ value = 1, 	title="Celebrities" },
-						{ value = 9, 	title="City and Architecture" },
+						{ value = 5, 		title="Black and White" },
+						{ value = 1, 		title="Celebrities" },
+						{ value = 9, 		title="City and Architecture" },
 						{ value = 15, 	title="Commercial" },
 						{ value = 16, 	title="Concert" },
 						{ value = 20, 	title="Family" },
 						{ value = 14, 	title="Fashion" },
-						{ value = 2, 	title="Film" },
+						{ value = 2, 		title="Film" },
 						{ value = 24, 	title="Fine Art" },
 						{ value = 23, 	title="Food" },
-						{ value = 3, 	title="Journalism" },
-						{ value = 8, 	title="Landscapes" },
+						{ value = 3, 		title="Journalism" },
+						{ value = 8, 		title="Landscapes" },
 						{ value = 12, 	title="Macro" },
 						{ value = 18, 	title="Nature" },
-						{ value = 4, 	title="Nude" },
-						{ value = 7, 	title="People" },
+						{ value = 4, 		title="Nude" },
+						{ value = 7, 		title="People" },
 						{ value = 19, 	title="Performing Arts" },
 						{ value = 17, 	title="Sport" },
-						{ value = 6, 	title="Still Life" },
+						{ value = 6, 		title="Still Life" },
 						{ value = 21, 	title="Street" },
 						{ value = 26, 	title="Transportation" },
 						{ value = 13, 	title="Travel" },
 						{ value = 22, 	title="Underwater" },
 						{ value = 27, 	title="Urban Exploration" },
 						{ value = 25, 	title="Wedding" },
-						{ value = 0, 	title="Uncategorized" }
+						{ value = 0, 		title="Uncategorized" }
 					},
 					value = bind "category"
 				},
@@ -897,9 +897,9 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 	end
 
 	if freshSkipped == 1 then
-		LrDialogs.message("Skipped photos", freshSkipped .. " photo was skipped because it doesn't have a title, category or three keywords.")
+		LrDialogs.message("Photo not published", freshSkipped .. " photo was skipped because it doesn't have a title, category or three keywords.")
 	elseif freshSkipped > 1 then
-		LrDialogs.message("Skipped photos", freshSkipped .. " photos were skipped because they don't have a title, category or three keywords.")
+		LrDialogs.message("Photos not published", freshSkipped .. " photos were skipped because they don't have a title, category or three keywords.")
 	end
 end
 
