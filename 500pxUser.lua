@@ -776,7 +776,7 @@ function PxUser.updateUserStatusTextBindings( propertyTable )
 				propertyTable.nCollections = n
 			end
 
-			local awesome = (userinfo.upgrade_status == 2)
+			local awesome = (userinfo.upgrade_status >= 2)
 			if propertyTable.isUserAwesome ~= awesome then
 				propertyTable.isUserAwesome = awesome
 			end

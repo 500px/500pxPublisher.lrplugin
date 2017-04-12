@@ -648,7 +648,7 @@ function exportServiceProvider.processRenderedPhotos( functionContext, exportCon
 		LrErrors.throwUserError( "Could not connect to 500px. Please make sure you are connected to the internet and try again." )
 	end
 	local user = obj.user
-	propertyTable.isUserAwesome = ( user.upgrade_status == 2 )
+	propertyTable.isUserAwesome = ( user.upgrade_status >= 2 )
 	propertyTable.isUserPlus 	= ( user.upgrade_status == 1 )
 	propertyTable.uploadLimit = user.upload_limit
 	propertyTable.domain = user.domain
