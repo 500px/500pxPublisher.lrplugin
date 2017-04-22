@@ -571,7 +571,7 @@ function PxUser.register( propertyTable )
 			spacing = f:control_spacing(),
 			fill = 1,
 			f:picture {
-				value = _PLUGIN:resourceId( "registration.png" )
+				value = _PLUGIN:resourceId( "/images/registration.png" )
 			},
 			f:column {
 				fill = 1,
@@ -719,7 +719,7 @@ function PxUser.verifyLogin( propertyTable )
 					propertyTable.validAccount = true
 				end
 			elseif not storedCredentialsAreValid( propertyTable ) then
-				logger:trace("Credential are not valid")
+				logger:trace("Credentials are not valid")
 				notLoggedIn( propertyTable )
 			end
 			PxUser.updateUserStatusTextBindings( propertyTable )
@@ -787,13 +787,13 @@ function PxUser.updateUserStatusTextBindings( propertyTable )
 			end
 
 			if userinfo and userinfo.upgrade_status == 0  then
-				propertyTable.accountTypeMessage = "You have a free account. You can upload 20 images per 7 day period. Upgrade to Plus or Awesome to have unlimited uploads, collections and more."
+				propertyTable.accountTypeMessage = "You have a free account. You can upload 20 images per 7 day period. Upgrade to Plus or Awesome to have unlimited uploads, advanced statistics, and more."
 
 			elseif userinfo and userinfo.upgrade_status == 1  then
-				propertyTable.accountTypeMessage = "You have a Plus account. You have unlimited uploads and sets. To create a portfolio, upgrade to Awesome."
+				propertyTable.accountTypeMessage = "You have a Plus account. You have unlimited uploads. To create a portfolio, upgrade to Awesome."
 
 			elseif userinfo then
-				propertyTable.accountTypeMessage = "You are awesome and have unlimited uploads and sets."
+				propertyTable.accountTypeMessage = "You are awesome and have unlimited uploads."
 			end
 
 		end )

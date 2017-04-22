@@ -17,7 +17,7 @@ require "500pxAPI"
 
 local publishServiceProvider = {}
 
-publishServiceProvider.small_icon = "500px_icon.png"
+publishServiceProvider.small_icon = "images/500px_icon.png"
 
 -- Description entry in the Publish Manager dialog, if the user does not provide one.
 publishServiceProvider.publish_fallbackNameBinding = "username"

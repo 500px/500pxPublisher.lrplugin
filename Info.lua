@@ -8,7 +8,7 @@ return {
 	LrExportServiceProvider = {
 		title = "500px",
 		file = "500pxExportServiceProvider.lua",
-		image = "500px.png",
+		image = "images/500px.png",
 	},
 	LrMetadataTagsetFactory = "500pxTagset.lua",
 	LrMetadataProvider = "500pxMetadataDefinition.lua",
